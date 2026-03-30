@@ -1,50 +1,51 @@
-# Welcome to your Expo app 👋
+# Hush App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+## App
 
-## Get started
-
-1. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+Install dependencies and run the Expo project:
 
 ```bash
-npm run reset-project
+npm install
+npx expo start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+BLE support in this project requires a development build, not Expo Go.
 
-## Learn more
+## Local Backend
 
-To learn more about developing your project with Expo, look at the following resources:
+This repo includes a Dockerized local backend for the BLE/session flow. It exposes:
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+- `GET /healthz`
+- `GET /debug/state`
+- `POST /sessions`
+- `POST /telemetry/batch`
+- `POST /sessions/:sessionId/status`
 
-## Join the community
+Start it locally with:
 
-Join our community of developers creating universal apps.
+```bash
+npm run mock-backend
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+This runs `docker compose up backend` and starts an Express service on `0.0.0.0:3000` by default.
+
+Stop it with:
+
+```bash
+npm run mock-backend:down
+```
+
+Persistent backend data is stored under:
+
+- `./backend-data/sqlite/`
+- `./backend-data/telemetry/`
+- `./backend-data/logs/`
+
+The mobile app reads its backend URL from `EXPO_PUBLIC_HUSH_API_BASE_URL`, which is already set in your local `.env.local`.
+
+For cloud deployment, the same `docker-compose.yml` can bind to a different host/port by setting:
+
+```bash
+HUSH_BACKEND_BIND_ADDRESS=127.0.0.1
+HUSH_BACKEND_PUBLIC_PORT=38080
+```

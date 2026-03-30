@@ -1,0 +1,19 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    container_name: hush-backend
+    restart: unless-stopped
+    ports:
+      - "${HUSH_BACKEND_BIND_ADDRESS:-0.0.0.0}:${HUSH_BACKEND_PUBLIC_PORT:-3000}:3000"
+    environment:
+      HUSH_BACKEND_HOST: 0.0.0.0
+      HUSH_BACKEND_PORT: 3000
+      HUSH_DATA_DIR: /data
+      HUSH_DATABASE_PATH: /data/sqlite/hush.db
+      HUSH_TELEMETRY_DIR: /data/telemetry
+      HUSH_LOG_DIR: /data/logs
+    volumes:
+      - ./backend-data/sqlite:/data/sqlite
+      - ./backend-data/telemetry:/data/telemetry
+      - ./backend-data/logs:/data/logs

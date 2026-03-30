@@ -18,6 +18,7 @@ import {
   Manrope_800ExtraBold,
 } from '@expo-google-fonts/manrope';
 import { hushColors } from '@/constants/hush-theme';
+import { HushProvider } from '@/providers/hush-provider';
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -59,10 +60,12 @@ export default function RootLayout() {
           border: 'rgba(208, 196, 187, 0.35)',
         },
       }}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      </Stack>
-      <StatusBar style="dark" />
+      <HushProvider>
+        <Stack>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        </Stack>
+        <StatusBar style="dark" />
+      </HushProvider>
     </ThemeProvider>
   );
 }

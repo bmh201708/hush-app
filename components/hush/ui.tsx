@@ -20,12 +20,14 @@ type ActionButtonProps = {
   icon: ReactNode;
   label: string;
   onPress?: () => void;
+  disabled?: boolean;
 };
 
 type TextActionProps = {
   icon: ReactNode;
   label: string;
   onPress?: () => void;
+  disabled?: boolean;
 };
 
 type ToggleSwitchProps = {
@@ -110,20 +112,30 @@ export function GlassCard({ children, style }: GlassCardProps) {
   return <View style={[styles.glassCard, style]}>{children}</View>;
 }
 
-export function PrimaryButton({ icon, label, onPress }: ActionButtonProps) {
+export function PrimaryButton({ icon, label, onPress, disabled }: ActionButtonProps) {
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => [styles.primaryButton, pressed && styles.pressed]}>
+    <Pressable
+      disabled={disabled}
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.primaryButton,
+        disabled && styles.primaryButtonDisabled,
+        pressed && !disabled && styles.pressed,
+      ]}>
       <View style={styles.primaryButtonIcon}>{icon}</View>
       <Text style={styles.primaryButtonLabel}>{label}</Text>
     </Pressable>
   );
 }
 
-export function TextAction({ icon, label, onPress }: TextActionProps) {
+export function TextAction({ icon, label, onPress, disabled }: TextActionProps) {
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => [styles.textAction, pressed && styles.pressed]}>
+    <Pressable
+      disabled={disabled}
+      onPress={onPress}
+      style={({ pressed }) => [styles.textAction, disabled && styles.disabled, pressed && !disabled && styles.pressed]}>
       {icon}
-      <Text style={styles.textActionLabel}>{label}</Text>
+      <Text style={[styles.textActionLabel, disabled && styles.disabledText]}>{label}</Text>
     </Pressable>
   );
 }
@@ -353,6 +365,9 @@ const styles = StyleSheet.create({
     color: hushColors.white,
     fontSize: 17,
   },
+  primaryButtonDisabled: {
+    backgroundColor: hushColors.secondary,
+  },
   textAction: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -362,6 +377,12 @@ const styles = StyleSheet.create({
     fontFamily: hushFonts.semibold,
     fontSize: 13,
     color: hushColors.primaryDark,
+  },
+  disabled: {
+    opacity: 0.55,
+  },
+  disabledText: {
+    color: hushColors.textSoft,
   },
   toggleTrack: {
     width: 46,

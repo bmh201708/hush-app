@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;700;800&amp;family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-background": "#1b1c1a",
+              "primary-fixed": "#d9eaa3",
+              "on-secondary": "#ffffff",
+              "on-tertiary-fixed": "#261a00",
+              "background": "#fbf9f5",
+              "error-container": "#ffdad6",
+              "on-primary-container": "#4b5922",
+              "surface-container-high": "#eae8e4",
+              "outline-variant": "#d0c4bb",
+              "primary-container": "#bfd08b",
+              "surface-bright": "#fbf9f5",
+              "tertiary-container": "#febe00",
+              "on-secondary-fixed-variant": "#4f4538",
+              "on-primary-fixed": "#161f00",
+              "tertiary-fixed-dim": "#fbbc00",
+              "on-secondary-fixed": "#221a0f",
+              "surface-container-low": "#f5f3ef",
+              "surface-tint": "#56642b",
+              "tertiary-fixed": "#ffdfa0",
+              "on-error": "#ffffff",
+              "secondary-container": "#efe0cd",
+              "surface-container": "#efeeea",
+              "on-primary": "#ffffff",
+              "on-secondary-container": "#6d6354",
+              "inverse-primary": "#bdce89",
+              "primary": "#56642b",
+              "surface": "#fbf9f5",
+              "inverse-on-surface": "#f2f0ed",
+              "on-error-container": "#93000a",
+              "secondary-fixed": "#efe0cd",
+              "on-surface": "#1b1c1a",
+              "surface-container-highest": "#e4e2de",
+              "inverse-surface": "#30312e",
+              "on-tertiary-container": "#6c4f00",
+              "secondary-fixed-dim": "#d2c4b2",
+              "error": "#ba1a1a",
+              "surface-variant": "#e4e2de",
+              "secondary": "#675d4e",
+              "surface-dim": "#dbdad6",
+              "surface-container-lowest": "#ffffff",
+              "on-tertiary": "#ffffff",
+              "outline": "#7f756d",
+              "primary-fixed-dim": "#bdce89",
+              "on-tertiary-fixed-variant": "#5c4300",
+              "on-primary-fixed-variant": "#3e4c16",
+              "tertiary": "#795900",
+              "on-surface-variant": "#4d453e"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .breathing-sphere-glow {
+            box-shadow: 0 0 80px 20px rgba(217, 234, 163, 0.15), inset 0 0 40px rgba(255, 255, 255, 0.4);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background font-body text-on-surface selection:bg-primary-container selection:text-on-primary-container min-h-screen">
+<!-- TopAppBar -->
+<nav class="fixed top-0 w-full z-50 bg-stone-50/60 dark:bg-stone-900/60 backdrop-blur-xl flex items-center justify-between px-8 h-20 w-full shadow-sm shadow-stone-200/50 dark:shadow-none">
+<div class="flex items-center gap-4">
+<button class="text-lime-900 dark:text-lime-200 hover:opacity-80 transition-opacity flex items-center justify-center">
+<span class="material-symbols-outlined" data-icon="notes">notes</span>
+</button>
+</div>
+<h1 class="text-2xl font-bold tracking-[0.2em] text-lime-900 dark:text-lime-100 font-manrope">HUSH</h1>
+<div class="flex items-center">
+<div class="w-10 h-10 rounded-full bg-surface-container-high border-2 border-white overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="User profile zen avatar, close-up of peaceful woman with soft morning lighting and neutral tones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDshmw2chgBdZUMW8oxKQ49GDuzDGG5kejqsxukZTK453YKedCTcriu03Q-lLE1twSLv38xK0cXm5PwJpu-4HSWU7QmiQXCftZitNVqKOV8oGsOFYGHNt9sun_zAhhb_A_nuZpzojivxKHnSAxvoBbjgHM2HGsT7Lqo6gwwwCQK-25-awFkJO__llrZG8AQ2gZAx609eEYrY0tSL8s9GTLK649-KJhYoSun-W6dUoPHo5WJx_TIMhk8UyuLULFranuskHpgeR9GoA"/>
+</div>
+</div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="pt-24 pb-40 px-6 max-w-4xl mx-auto min-h-screen flex flex-col items-center justify-center relative overflow-hidden">
+<!-- Background Ambient Textures (Decorative) -->
+<div class="absolute top-1/4 -left-20 w-96 h-96 bg-primary-fixed/20 blur-[120px] rounded-full -z-10"></div>
+<div class="absolute bottom-1/4 -right-20 w-96 h-96 bg-tertiary-fixed/20 blur-[120px] rounded-full -z-10"></div>
+<!-- Editorial Header Section -->
+<div class="w-full text-center mb-12 space-y-2">
+<p class="font-label text-[10px] uppercase tracking-[0.3em] text-on-surface-variant/60 font-medium">Current Session</p>
+<h2 class="font-headline text-4xl md:text-5xl font-light tracking-tight text-on-surface">Deep Presence</h2>
+</div>
+<!-- The Core Breathing Sphere Container -->
+<div class="relative flex items-center justify-center w-full aspect-square max-w-md group">
+<!-- Outer Ripple Rings -->
+<div class="absolute inset-0 rounded-full border border-primary/5 scale-110"></div>
+<div class="absolute inset-0 rounded-full border border-primary/10 scale-125"></div>
+<!-- The Living Sphere -->
+<div class="w-64 h-64 md:w-80 md:h-80 rounded-full relative breathing-sphere-glow overflow-hidden transition-all duration-[4000ms] ease-in-out bg-gradient-to-br from-primary-fixed via-primary-container to-tertiary-fixed-dim flex items-center justify-center backdrop-blur-md">
+<!-- Internal Glass Reflections -->
+<div class="absolute top-4 left-1/4 w-1/2 h-1/4 bg-white/30 blur-xl rounded-full"></div>
+<!-- Inner Content -->
+<div class="relative z-10 text-center flex flex-col items-center">
+<span class="material-symbols-outlined text-on-primary-container/40 text-4xl mb-2" data-icon="air">air</span>
+<p class="font-headline text-2xl font-light text-on-primary-container tracking-wide">Inhale</p>
+</div>
+<!-- Glass Surface Overlay -->
+<div class="absolute inset-0 bg-white/10 mix-blend-overlay"></div>
+</div>
+<!-- Asymmetric Metadata Labels -->
+<div class="absolute -right-4 top-1/4 bg-surface-container-lowest/70 backdrop-blur-xl px-4 py-2 rounded-lg shadow-sm border border-outline-variant/10">
+<span class="block font-label text-[10px] text-on-surface-variant uppercase tracking-widest">Duration</span>
+<span class="font-headline text-lg font-medium">10:00</span>
+</div>
+<div class="absolute -left-4 bottom-1/4 bg-surface-container-lowest/70 backdrop-blur-xl px-4 py-2 rounded-lg shadow-sm border border-outline-variant/10">
+<span class="block font-label text-[10px] text-on-surface-variant uppercase tracking-widest">Pace</span>
+<span class="font-headline text-lg font-medium">4-7-8</span>
+</div>
+</div>
+<!-- Breathing Instruction & Control -->
+<div class="mt-16 text-center space-y-8">
+<div class="space-y-1">
+<p class="text-on-surface-variant/80 font-light text-lg tracking-wide">Follow the gentle expansion of the light</p>
+</div>
+<div class="flex flex-col items-center gap-6">
+<!-- Primary Action -->
+<button class="px-12 py-5 bg-primary text-on-primary rounded-full font-headline text-lg font-medium shadow-xl shadow-primary/10 hover:scale-[1.02] active:scale-95 transition-all duration-300 flex items-center gap-3">
+<span class="material-symbols-outlined" data-icon="play_arrow" data-weight="fill" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+                    Start Session
+                </button>
+<!-- Secondary Info -->
+<button class="flex items-center gap-2 text-primary font-label text-sm font-semibold tracking-wide hover:opacity-70 transition-opacity">
+<span class="material-symbols-outlined text-lg" data-icon="settings">settings</span>
+                    Adjust Rhythm
+                </button>
+</div>
+</div>
+<!-- Quick Stats Bento Grid (Bottom Section) -->
+<section class="w-full mt-24 grid grid-cols-2 md:grid-cols-4 gap-4">
+<div class="bg-surface-container-low/50 p-6 rounded-lg flex flex-col justify-between aspect-square md:aspect-auto">
+<span class="material-symbols-outlined text-primary mb-4" data-icon="favorite">favorite</span>
+<div>
+<p class="text-[10px] uppercase tracking-widest text-on-surface-variant/60 font-bold">BPM Change</p>
+<h3 class="font-headline text-2xl font-light">-12</h3>
+</div>
+</div>
+<div class="bg-surface-container-high/40 p-6 rounded-lg flex flex-col justify-between aspect-square md:aspect-auto">
+<span class="material-symbols-outlined text-tertiary mb-4" data-icon="bolt">bolt</span>
+<div>
+<p class="text-[10px] uppercase tracking-widest text-on-surface-variant/60 font-bold">Focus Score</p>
+<h3 class="font-headline text-2xl font-light">94%</h3>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-lg flex flex-col justify-between shadow-sm aspect-square md:aspect-auto">
+<span class="material-symbols-outlined text-secondary mb-4" data-icon="schedule">schedule</span>
+<div>
+<p class="text-[10px] uppercase tracking-widest text-on-surface-variant/60 font-bold">Today</p>
+<h3 class="font-headline text-2xl font-light">24m</h3>
+</div>
+</div>
+<div class="bg-surface-container-low/50 p-6 rounded-lg flex flex-col justify-between aspect-square md:aspect-auto">
+<span class="material-symbols-outlined text-primary-container mb-4" data-icon="forest">forest</span>
+<div>
+<p class="text-[10px] uppercase tracking-widest text-on-surface-variant/60 font-bold">Streak</p>
+<h3 class="font-headline text-2xl font-light">8d</h3>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md rounded-[3rem] bg-white/70 dark:bg-stone-950/70 backdrop-blur-2xl z-50 flex justify-around items-center px-4 py-3 shadow-[0_20px_50px_rgba(27,28,26,0.04)]">
+<!-- Breath (Active) -->
+<a class="flex flex-col items-center justify-center bg-lime-200/50 dark:bg-lime-900/30 text-lime-900 dark:text-lime-100 rounded-full px-6 py-2 transition-all hover:scale-110" href="#">
+<span class="material-symbols-outlined" data-icon="air" data-weight="fill" style="font-variation-settings: 'FILL' 1;">air</span>
+<span class="font-manrope text-[10px] uppercase tracking-widest font-medium mt-1">Breath</span>
+</a>
+<!-- Trends -->
+<a class="flex flex-col items-center justify-center text-stone-500 dark:text-stone-400 px-6 py-2 hover:scale-110 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="font-manrope text-[10px] uppercase tracking-widest font-medium mt-1">Trends</span>
+</a>
+<!-- Device -->
+<a class="flex flex-col items-center justify-center text-stone-500 dark:text-stone-400 px-6 py-2 hover:scale-110 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="watch">watch</span>
+<span class="font-manrope text-[10px] uppercase tracking-widest font-medium mt-1">Device</span>
+</a>
+<!-- Zen -->
+<a class="flex flex-col items-center justify-center text-stone-500 dark:text-stone-400 px-6 py-2 hover:scale-110 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="spa">spa</span>
+<span class="font-manrope text-[10px] uppercase tracking-widest font-medium mt-1">Zen</span>
+</a>
+</nav>
+</body></html>

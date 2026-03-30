@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>HUSH - Statistics</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-background": "#1b1c1a",
+              "primary-fixed": "#d9eaa3",
+              "on-secondary": "#ffffff",
+              "on-tertiary-fixed": "#261a00",
+              "background": "#fbf9f5",
+              "error-container": "#ffdad6",
+              "on-primary-container": "#4b5922",
+              "surface-container-high": "#eae8e4",
+              "outline-variant": "#d0c4bb",
+              "primary-container": "#bfd08b",
+              "surface-bright": "#fbf9f5",
+              "tertiary-container": "#febe00",
+              "on-secondary-fixed-variant": "#4f4538",
+              "on-primary-fixed": "#161f00",
+              "tertiary-fixed-dim": "#fbbc00",
+              "on-secondary-fixed": "#221a0f",
+              "surface-container-low": "#f5f3ef",
+              "surface-tint": "#56642b",
+              "tertiary-fixed": "#ffdfa0",
+              "on-error": "#ffffff",
+              "secondary-container": "#efe0cd",
+              "surface-container": "#efeeea",
+              "on-primary": "#ffffff",
+              "on-secondary-container": "#6d6354",
+              "inverse-primary": "#bdce89",
+              "primary": "#56642b",
+              "surface": "#fbf9f5",
+              "inverse-on-surface": "#f2f0ed",
+              "on-error-container": "#93000a",
+              "secondary-fixed": "#efe0cd",
+              "on-surface": "#1b1c1a",
+              "surface-container-highest": "#e4e2de",
+              "inverse-surface": "#30312e",
+              "on-tertiary-container": "#6c4f00",
+              "secondary-fixed-dim": "#d2c4b2",
+              "error": "#ba1a1a",
+              "surface-variant": "#e4e2de",
+              "secondary": "#675d4e",
+              "surface-dim": "#dbdad6",
+              "surface-container-lowest": "#ffffff",
+              "on-tertiary": "#ffffff",
+              "outline": "#7f756d",
+              "primary-fixed-dim": "#bdce89",
+              "on-tertiary-fixed-variant": "#5c4300",
+              "on-primary-fixed-variant": "#3e4c16",
+              "tertiary": "#795900",
+              "on-surface-variant": "#4d453e"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+      }
+      .glass-card {
+        background: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+      }
+      .breathing-glow {
+        box-shadow: 0 0 60px 10px rgba(217, 234, 163, 0.3);
+      }
+      body {
+        background-color: #fbf9f5;
+        color: #1b1c1a;
+        -webkit-font-smoothing: antialiased;
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-stone-50/60 dark:bg-stone-900/60 backdrop-blur-xl flex items-center justify-between px-8 h-20 w-full shadow-sm shadow-stone-200/50 dark:shadow-none">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-lime-900 dark:text-lime-200 cursor-pointer hover:opacity-80 transition-opacity">notes</span>
+</div>
+<h1 class="text-2xl font-bold tracking-[0.2em] text-lime-900 dark:text-lime-100 font-manrope">HUSH</h1>
+<div class="w-10 h-10 rounded-full overflow-hidden bg-surface-container-high ring-2 ring-surface-variant/20">
+<img alt="User profile" data-alt="Close-up portrait of a serene woman with eyes closed in a bright minimalist setting with soft natural sunlight" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDS72qF1pBSYH1JwffZYlELsScmd-r_HZYt918CFYpmSMBQIvfQbzlH2WMOpojh5Vc0vdoR0MQ8_Sr_ri5r8Dlw1iBwfOQyHnMhHjV56ZWllGsVgZUNifrVMqCVr22h0s8tWAz6VFANzLhuIuXrNHlpc9xRgDqdNmWldmBIIReUgoOJxJDf-aio0vf8Co_H5MLchAqBa6qsPhv9rp3StKGARngoDqvtI4RSQCKwjoQcj3i65AoK9LhS8Vw0V2EVjEcjuSMYmqb5NQ"/>
+</div>
+</header>
+<main class="pt-28 pb-32 px-6 max-w-5xl mx-auto space-y-12">
+<!-- Header Section -->
+<section class="flex flex-col md:flex-row justify-between items-end gap-6">
+<div class="space-y-2">
+<span class="font-label text-label-sm uppercase tracking-widest text-primary font-semibold">Weekly Insights</span>
+<h2 class="font-headline text-5xl md:text-6xl font-light tracking-tight text-on-background">Your Rhythm.</h2>
+</div>
+<div class="flex gap-2 p-1 bg-surface-container-low rounded-full">
+<button class="px-6 py-2 rounded-full text-sm font-medium bg-surface-container-lowest shadow-sm text-on-surface">Week</button>
+<button class="px-6 py-2 rounded-full text-sm font-medium text-on-surface-variant hover:bg-surface-container-high transition-colors">Month</button>
+</div>
+</section>
+<!-- Main Stats Grid (Bento Style) -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+<!-- Primary Chart Card -->
+<div class="md:col-span-8 glass-card p-8 rounded-xl flex flex-col justify-between min-h-[400px]">
+<div class="flex justify-between items-start mb-8">
+<div>
+<h3 class="font-headline text-2xl font-medium text-on-background">Breathing Consistency</h3>
+<p class="text-on-surface-variant text-sm mt-1">Daily average breaths per minute</p>
+</div>
+<div class="text-right">
+<span class="text-3xl font-headline font-semibold text-primary">6.4</span>
+<span class="block text-xs uppercase tracking-widest text-on-surface-variant">BPM AVG</span>
+</div>
+</div>
+<!-- Simple Vector Line Chart Simulation -->
+<div class="relative h-48 w-full mt-auto">
+<svg class="w-full h-full preserve-3d" viewbox="0 0 400 100">
+<path d="M0,80 Q50,75 100,40 T200,50 T300,20 T400,30" fill="none" stroke="url(#gradient)" stroke-linecap="round" stroke-width="4"></path>
+<defs>
+<lineargradient id="gradient" x1="0%" x2="100%" y1="0%" y2="0%">
+<stop offset="0%" stop-color="#56642b"></stop>
+<stop offset="100%" stop-color="#bfd08b"></stop>
+</lineargradient>
+</defs>
+<!-- Grid lines -->
+<line stroke="#e4e2de" stroke-dasharray="4" stroke-width="0.5" x1="0" x2="400" y1="20" y2="20"></line>
+<line stroke="#e4e2de" stroke-dasharray="4" stroke-width="0.5" x1="0" x2="400" y1="50" y2="50"></line>
+<line stroke="#e4e2de" stroke-dasharray="4" stroke-width="0.5" x1="0" x2="400" y1="80" y2="80"></line>
+</svg>
+<div class="flex justify-between mt-4 text-[10px] uppercase tracking-widest text-on-surface-variant font-medium">
+<span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+</div>
+</div>
+</div>
+<!-- Zen Score Ring -->
+<div class="md:col-span-4 bg-primary text-on-primary p-8 rounded-xl flex flex-col items-center justify-center text-center space-y-6">
+<div class="relative w-40 h-40">
+<svg class="w-full h-full -rotate-90">
+<circle class="opacity-10" cx="80" cy="80" fill="transparent" r="70" stroke="currentColor" stroke-width="8"></circle>
+<circle class="text-primary-fixed" cx="80" cy="80" fill="transparent" r="70" stroke="currentColor" stroke-dasharray="440" stroke-dashoffset="88" stroke-linecap="round" stroke-width="8"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="text-4xl font-headline font-bold">82</span>
+<span class="text-[10px] uppercase tracking-[0.2em] opacity-80">Zen Score</span>
+</div>
+</div>
+<div>
+<h4 class="font-headline text-xl font-medium">Deep Clarity</h4>
+<p class="text-primary-fixed/70 text-sm mt-2 leading-relaxed px-4">Your focus is 12% higher than last week. Maintain the pace.</p>
+</div>
+</div>
+<!-- Small Metric Cards -->
+<div class="md:col-span-4 glass-card p-6 rounded-xl flex items-center gap-6">
+<div class="w-14 h-14 rounded-full bg-secondary-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-3xl">timer</span>
+</div>
+<div>
+<span class="text-2xl font-headline font-semibold block">320m</span>
+<span class="text-xs uppercase tracking-widest text-on-surface-variant">Meditation Time</span>
+</div>
+</div>
+<div class="md:col-span-4 glass-card p-6 rounded-xl flex items-center gap-6">
+<div class="w-14 h-14 rounded-full bg-tertiary-fixed flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined text-3xl">bolt</span>
+</div>
+<div>
+<span class="text-2xl font-headline font-semibold block">14 Day</span>
+<span class="text-xs uppercase tracking-widest text-on-surface-variant">Active Streak</span>
+</div>
+</div>
+<div class="md:col-span-4 glass-card p-6 rounded-xl flex items-center gap-6">
+<div class="w-14 h-14 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface">
+<span class="material-symbols-outlined text-3xl">favorite</span>
+</div>
+<div>
+<span class="text-2xl font-headline font-semibold block">58 bpm</span>
+<span class="text-xs uppercase tracking-widest text-on-surface-variant">Resting Heart</span>
+</div>
+</div>
+</div>
+<!-- Secondary Section: Activity Logs -->
+<section class="space-y-6">
+<div class="flex justify-between items-center">
+<h3 class="font-headline text-2xl font-medium">Recent Sessions</h3>
+<button class="text-primary text-sm font-medium hover:underline">View All</button>
+</div>
+<div class="space-y-3">
+<!-- Session Item -->
+<div class="flex items-center justify-between p-5 bg-surface-container-low rounded-lg hover:bg-surface-container transition-colors cursor-pointer">
+<div class="flex items-center gap-5">
+<div class="w-12 h-12 rounded-full bg-primary-fixed-dim/30 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">air</span>
+</div>
+<div>
+<p class="font-medium text-on-surface">Mindful Morning</p>
+<p class="text-xs text-on-surface-variant">Today • 08:30 AM</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-medium text-on-surface">15 min</p>
+<p class="text-[10px] uppercase tracking-tighter text-tertiary font-bold">Resonant</p>
+</div>
+</div>
+<!-- Session Item -->
+<div class="flex items-center justify-between p-5 bg-surface-container-low rounded-lg hover:bg-surface-container transition-colors cursor-pointer">
+<div class="flex items-center gap-5">
+<div class="w-12 h-12 rounded-full bg-secondary-fixed-dim/30 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined">spa</span>
+</div>
+<div>
+<p class="font-medium text-on-surface">Deep Sleep Prep</p>
+<p class="text-xs text-on-surface-variant">Yesterday • 10:15 PM</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-medium text-on-surface">20 min</p>
+<p class="text-[10px] uppercase tracking-tighter text-on-surface-variant font-bold">Delta</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Quote Area -->
+<section class="py-12 border-t border-outline-variant/10">
+<blockquote class="max-w-xl">
+<p class="font-headline text-2xl italic font-light text-on-surface-variant leading-relaxed">
+                    "Feelings come and go like clouds in a windy sky. Conscious breathing is my anchor."
+                </p>
+<footer class="mt-4 text-xs uppercase tracking-[0.3em] text-primary font-bold">Thich Nhat Hanh</footer>
+</blockquote>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md rounded-[3rem] bg-white/70 dark:bg-stone-950/70 backdrop-blur-2xl z-50 flex justify-around items-center px-4 py-3 shadow-[0_20px_50px_rgba(27,28,26,0.04)]">
+<a class="flex flex-col items-center justify-center text-stone-500 dark:text-stone-400 px-6 py-2 hover:scale-110 transition-transform" href="#">
+<span class="material-symbols-outlined mb-1">air</span>
+<span class="font-manrope text-[10px] uppercase tracking-widest font-medium">Breath</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-lime-200/50 dark:bg-lime-900/30 text-lime-900 dark:text-lime-100 rounded-full px-6 py-2 transition-all" href="#">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 1;">analytics</span>
+<span class="font-manrope text-[10px] uppercase tracking-widest font-medium">Trends</span>
+</a>
+<a class="flex flex-col items-center justify-center text-stone-500 dark:text-stone-400 px-6 py-2 hover:scale-110 transition-transform" href="#">
+<span class="material-symbols-outlined mb-1">watch</span>
+<span class="font-manrope text-[10px] uppercase tracking-widest font-medium">Device</span>
+</a>
+<a class="flex flex-col items-center justify-center text-stone-500 dark:text-stone-400 px-6 py-2 hover:scale-110 transition-transform" href="#">
+<span class="material-symbols-outlined mb-1">spa</span>
+<span class="font-manrope text-[10px] uppercase tracking-widest font-medium">Zen</span>
+</a>
+</nav>
+</body></html>

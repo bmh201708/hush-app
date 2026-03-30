@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;700;800&amp;family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-background": "#1b1c1a",
+              "primary-fixed": "#d9eaa3",
+              "on-secondary": "#ffffff",
+              "on-tertiary-fixed": "#261a00",
+              "background": "#fbf9f5",
+              "error-container": "#ffdad6",
+              "on-primary-container": "#4b5922",
+              "surface-container-high": "#eae8e4",
+              "outline-variant": "#d0c4bb",
+              "primary-container": "#bfd08b",
+              "surface-bright": "#fbf9f5",
+              "tertiary-container": "#febe00",
+              "on-secondary-fixed-variant": "#4f4538",
+              "on-primary-fixed": "#161f00",
+              "tertiary-fixed-dim": "#fbbc00",
+              "on-secondary-fixed": "#221a0f",
+              "surface-container-low": "#f5f3ef",
+              "surface-tint": "#56642b",
+              "tertiary-fixed": "#ffdfa0",
+              "on-error": "#ffffff",
+              "secondary-container": "#efe0cd",
+              "surface-container": "#efeeea",
+              "on-primary": "#ffffff",
+              "on-secondary-container": "#6d6354",
+              "inverse-primary": "#bdce89",
+              "primary": "#56642b",
+              "surface": "#fbf9f5",
+              "inverse-on-surface": "#f2f0ed",
+              "on-error-container": "#93000a",
+              "secondary-fixed": "#efe0cd",
+              "on-surface": "#1b1c1a",
+              "surface-container-highest": "#e4e2de",
+              "inverse-surface": "#30312e",
+              "on-tertiary-container": "#6c4f00",
+              "secondary-fixed-dim": "#d2c4b2",
+              "error": "#ba1a1a",
+              "surface-variant": "#e4e2de",
+              "secondary": "#675d4e",
+              "surface-dim": "#dbdad6",
+              "surface-container-lowest": "#ffffff",
+              "on-tertiary": "#ffffff",
+              "outline": "#7f756d",
+              "primary-fixed-dim": "#bdce89",
+              "on-tertiary-fixed-variant": "#5c4300",
+              "on-primary-fixed-variant": "#3e4c16",
+              "tertiary": "#795900",
+              "on-surface-variant": "#4d453e"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+      }
+      .bg-glass {
+        background: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(24px);
+      }
+      .breath-glow {
+        box-shadow: 0 0 60px 10px rgba(217, 234, 163, 0.3);
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-stone-50/60 dark:bg-stone-900/60 backdrop-blur-xl flex items-center justify-between px-8 h-20 w-full shadow-sm shadow-stone-200/50 dark:shadow-none">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-lime-900 dark:text-lime-200 cursor-pointer hover:opacity-80 transition-opacity" data-icon="notes">notes</span>
+</div>
+<h1 class="text-2xl font-bold tracking-[0.2em] text-lime-900 dark:text-lime-100 font-manrope">HUSH</h1>
+<div class="w-10 h-10 rounded-full overflow-hidden border border-outline-variant/20">
+<img class="w-full h-full object-cover" data-alt="User profile zen avatar showing a calm woman looking thoughtfully ahead with soft natural lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDKfaTnFInHT_1Yh5RSYsctfGAUjfsChYD0XE8yXiJEJ-vwYDxgvLm5EzOcLdX5XKOtmw15pChe1FDvjSpVzwtr_p8NzagQAXFptOMzYMgDLIoAvMPqfOvuap_QOkZI6OBSk77nv1Oxg0xkt-zp-bqkFL2r0nya4Ou87YjQnOvIv1J5Du3k0o3HAulf68TlGhFcSV5Lk6_35_LT4t9WMIVWUf_aHNuWTWfu5h3P07blvsAckGF7AzxW5KAhp1eta2BXgofP8_-Wdw"/>
+</div>
+</header>
+<main class="pt-28 pb-40 px-6 max-w-2xl mx-auto space-y-12">
+<!-- Device Hero Section -->
+<section class="relative flex flex-col items-center justify-center py-12">
+<div class="absolute inset-0 bg-gradient-to-b from-primary-fixed/20 to-transparent rounded-full blur-3xl -z-10 h-80 w-80 mx-auto"></div>
+<div class="relative w-64 h-64 flex items-center justify-center rounded-full bg-surface-container-lowest/60 backdrop-blur-2xl breath-glow border border-surface-container-high/40">
+<div class="absolute inset-4 rounded-full border-2 border-dashed border-primary/10 animate-[spin_20s_linear_infinite]"></div>
+<img class="w-48 h-48 object-contain drop-shadow-2xl" data-alt="Minimalist design sculptural wearable necklace accessory in matte white porcelain finish against a soft sand colored background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDpKzlp-j1cH_ArBWnqaG8dlSndyu1kKbA7zL46JhqhQbqnDv09cZai7m6wJqHXCBxy8Ub3lJeMJDyANW6Bmr5bTzf0QMFf9EzoP9najlxARVMdkYj-gnRcTaexQoReJ7Ii3053Izo-pxdXf0mL_rxjJ5mCIhYQL_wtYSGxLpEZvQeWQJkag2DLIjnaiimy3mksNNshndJAfVeldUu8C2PA2RVX4bmYtE5zzQIy12KjyQh66_s1stCRur6_zANtuMUKW1R-5-lOPw"/>
+<!-- Connection Status Badge -->
+<div class="absolute -bottom-2 px-4 py-1.5 bg-primary rounded-full flex items-center gap-2 shadow-lg">
+<span class="w-2 h-2 rounded-full bg-primary-fixed animate-pulse"></span>
+<span class="text-[10px] font-label font-bold text-on-primary tracking-[0.1em] uppercase">Connected</span>
+</div>
+</div>
+<div class="mt-12 text-center space-y-2">
+<h2 class="text-3xl font-headline font-light tracking-tight text-on-surface">HUSH Core No. 1</h2>
+<div class="flex items-center justify-center gap-2 text-on-surface-variant font-label text-sm">
+<span class="material-symbols-outlined text-lg" data-icon="battery_horiz_075">battery_horiz_075</span>
+<span>84% Charged</span>
+</div>
+</div>
+</section>
+<!-- Settings List -->
+<section class="space-y-4">
+<h3 class="font-label text-xs uppercase tracking-[0.2em] text-outline px-4 mb-6">Device Controls</h3>
+<!-- Reminders Toggle (Bento Style Card) -->
+<div class="bg-surface-container-lowest/70 backdrop-blur-md rounded-lg p-6 flex items-center justify-between border border-surface-container/50">
+<div class="flex items-center gap-5">
+<div class="w-12 h-12 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container">
+<span class="material-symbols-outlined" data-icon="notifications_active">notifications_active</span>
+</div>
+<div>
+<p class="font-headline font-semibold text-on-surface">Posture Reminders</p>
+<p class="text-sm text-on-surface-variant">Gentle haptic pulses when slouching</p>
+</div>
+</div>
+<button class="w-14 h-8 bg-primary rounded-full relative flex items-center px-1 shadow-inner">
+<div class="w-6 h-6 bg-white rounded-full ml-auto shadow-md"></div>
+</button>
+</div>
+<!-- Breathing Guidance -->
+<div class="bg-surface-container-lowest/70 backdrop-blur-md rounded-lg p-6 flex items-center justify-between border border-surface-container/50">
+<div class="flex items-center gap-5">
+<div class="w-12 h-12 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container">
+<span class="material-symbols-outlined" data-icon="air">air</span>
+</div>
+<div>
+<p class="font-headline font-semibold text-on-surface">Haptic Breath Lead</p>
+<p class="text-sm text-on-surface-variant">Vibration-guided deep inhale patterns</p>
+</div>
+</div>
+<button class="w-14 h-8 bg-surface-container-highest rounded-full relative flex items-center px-1">
+<div class="w-6 h-6 bg-white rounded-full shadow-md"></div>
+</button>
+</div>
+<!-- Firmware Section (Asymmetric Highlight) -->
+<div class="mt-12 pt-8">
+<h3 class="font-label text-xs uppercase tracking-[0.2em] text-outline px-4 mb-6">System</h3>
+<div class="group cursor-pointer bg-surface-container-low rounded-lg p-6 border border-transparent hover:border-outline-variant/20 transition-all duration-300">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-5">
+<span class="material-symbols-outlined text-primary" data-icon="system_update">system_update</span>
+<div>
+<p class="font-headline font-semibold text-on-surface">Firmware Version</p>
+<p class="text-sm text-on-surface-variant">v2.4.0 • Up to date</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline group-hover:translate-x-1 transition-transform" data-icon="chevron_right">chevron_right</span>
+</div>
+</div>
+<div class="mt-4 group cursor-pointer bg-surface-container-low rounded-lg p-6 border border-transparent hover:border-outline-variant/20 transition-all duration-300">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-5">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="bluetooth_searching">bluetooth_searching</span>
+<div>
+<p class="font-headline font-semibold text-on-surface">Factory Reset</p>
+<p class="text-sm text-on-surface-variant">Disconnect and wipe device data</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline" data-icon="chevron_right">chevron_right</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Help Card (Visual Accent) -->
+<section class="bg-primary/5 rounded-lg p-8 border border-primary/10 flex flex-col items-center text-center space-y-4">
+<span class="material-symbols-outlined text-3xl text-primary" data-icon="contact_support">contact_support</span>
+<div>
+<h4 class="font-headline text-lg font-bold text-primary">Need assistance?</h4>
+<p class="text-sm text-on-surface-variant max-w-xs mx-auto mt-2">Explore our minimalist guide on how to wear HUSH for optimal heart-rate tracking.</p>
+</div>
+<button class="mt-2 px-8 py-3 bg-primary text-on-primary rounded-full font-label text-xs font-bold uppercase tracking-widest hover:shadow-lg transition-all active:scale-95">
+                View Manual
+            </button>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-6 left-0 right-0 z-50 flex justify-around items-center px-4 py-3 bg-white/70 dark:bg-stone-950/70 backdrop-blur-2xl fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md rounded-[3rem] shadow-[0_20px_50px_rgba(27,28,26,0.04)]">
+<a class="flex flex-col items-center justify-center text-stone-500 dark:text-stone-400 px-6 py-2 hover:scale-110 transition-transform" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="air">air</span>
+<span class="font-manrope text-[10px] uppercase tracking-widest font-medium">Breath</span>
+</a>
+<a class="flex flex-col items-center justify-center text-stone-500 dark:text-stone-400 px-6 py-2 hover:scale-110 transition-transform" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="analytics">analytics</span>
+<span class="font-manrope text-[10px] uppercase tracking-widest font-medium">Trends</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-lime-200/50 dark:bg-lime-900/30 text-lime-900 dark:text-lime-100 rounded-full px-6 py-2 transition-all hover:scale-110" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="watch">watch</span>
+<span class="font-manrope text-[10px] uppercase tracking-widest font-medium">Device</span>
+</a>
+<a class="flex flex-col items-center justify-center text-stone-500 dark:text-stone-400 px-6 py-2 hover:scale-110 transition-transform" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="spa">spa</span>
+<span class="font-manrope text-[10px] uppercase tracking-widest font-medium">Zen</span>
+</a>
+</nav>
+</body></html>

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;700;800&amp;family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "on-background": "#1b1c1a",
+            "primary-fixed": "#d9eaa3",
+            "on-secondary": "#ffffff",
+            "on-tertiary-fixed": "#261a00",
+            "background": "#fbf9f5",
+            "error-container": "#ffdad6",
+            "on-primary-container": "#4b5922",
+            "surface-container-high": "#eae8e4",
+            "outline-variant": "#d0c4bb",
+            "primary-container": "#bfd08b",
+            "surface-bright": "#fbf9f5",
+            "tertiary-container": "#febe00",
+            "on-secondary-fixed-variant": "#4f4538",
+            "on-primary-fixed": "#161f00",
+            "tertiary-fixed-dim": "#fbbc00",
+            "on-secondary-fixed": "#221a0f",
+            "surface-container-low": "#f5f3ef",
+            "surface-tint": "#56642b",
+            "tertiary-fixed": "#ffdfa0",
+            "on-error": "#ffffff",
+            "secondary-container": "#efe0cd",
+            "surface-container": "#efeeea",
+            "on-primary": "#ffffff",
+            "on-secondary-container": "#6d6354",
+            "inverse-primary": "#bdce89",
+            "primary": "#56642b",
+            "surface": "#fbf9f5",
+            "inverse-on-surface": "#f2f0ed",
+            "on-error-container": "#93000a",
+            "secondary-fixed": "#efe0cd",
+            "on-surface": "#1b1c1a",
+            "surface-container-highest": "#e4e2de",
+            "inverse-surface": "#30312e",
+            "on-tertiary-container": "#6c4f00",
+            "secondary-fixed-dim": "#d2c4b2",
+            "error": "#ba1a1a",
+            "surface-variant": "#e4e2de",
+            "secondary": "#675d4e",
+            "surface-dim": "#dbdad6",
+            "surface-container-lowest": "#ffffff",
+            "on-tertiary": "#ffffff",
+            "outline": "#7f756d",
+            "primary-fixed-dim": "#bdce89",
+            "on-tertiary-fixed-variant": "#5c4300",
+            "on-primary-fixed-variant": "#3e4c16",
+            "tertiary": "#795900",
+            "on-surface-variant": "#4d453e"
+          },
+          fontFamily: {
+            "headline": ["Manrope"],
+            "body": ["Inter"],
+            "label": ["Inter"]
+          },
+          borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+    }
+    .breath-gradient {
+      background: linear-gradient(135deg, #56642b 0%, #bfd08b 100%);
+    }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.6);
+      backdrop-filter: blur(24px);
+    }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-stone-50/60 dark:bg-stone-900/60 backdrop-blur-xl flex items-center justify-between px-8 h-20 shadow-sm shadow-stone-200/50 dark:shadow-none">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-lime-900 dark:text-lime-200 cursor-pointer transition-opacity hover:opacity-80" data-icon="notes">notes</span>
+</div>
+<h1 class="text-2xl font-bold tracking-[0.2em] text-lime-900 dark:text-lime-100 font-manrope">HUSH</h1>
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-primary-container/30">
+<img alt="User profile zen avatar" class="w-full h-full object-cover" data-alt="Close-up portrait of a serene woman with eyes closed in a peaceful, warm sunlit room with soft bokeh background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDuh8tnas-Z3XLsI1zgnJw7khYqXzzcbwnQ39rLgH-YaoRkw2Atk0P3yJRr00rLExXa1T-yzEkkRaOnlmv8Rv0mx-YBrAFvHq9yu-XT4hqIpNAd3dg51h905u2-Ja9i60pO5wmCz7gelZXn3buLQseDHGhZWLqYpcfur3Nbfyt3-ksqYeo2fWLDq-jXf9gSX8c--JOHDOAdyClb49qQe9s3s_ZBalKWm3Df3f-oFeO2S_Sin6ychS6bmG5QFb9SwyNkh0hbVh37KA"/>
+</div>
+</header>
+<main class="pt-28 pb-32 px-6 max-w-4xl mx-auto space-y-10">
+<!-- Profile Hero Section (Asymmetric Editorial Style) -->
+<section class="flex flex-col md:flex-row items-end justify-between gap-8">
+<div class="space-y-4">
+<span class="font-label text-xs uppercase tracking-[0.3em] text-primary opacity-60">Zen Master</span>
+<h2 class="font-headline text-5xl font-light tracking-tight text-on-background leading-tight">
+          Breathe deep,<br/><span class="font-bold">Evelyn.</span>
+</h2>
+<p class="text-on-surface-variant max-w-xs leading-relaxed">Your sanctuary is ready. You have spent 1,420 minutes in deep silence this month.</p>
+</div>
+<div class="flex gap-4">
+<div class="glass-card p-6 rounded-lg text-center min-w-[100px] shadow-sm">
+<div class="font-headline text-2xl font-bold text-primary">12</div>
+<div class="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">Day Streak</div>
+</div>
+<div class="glass-card p-6 rounded-lg text-center min-w-[100px] shadow-sm">
+<div class="font-headline text-2xl font-bold text-tertiary">48</div>
+<div class="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">Sessions</div>
+</div>
+</div>
+</section>
+<!-- Last Session Bento-ish Card -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="md:col-span-2 relative overflow-hidden rounded-xl h-64 shadow-sm group">
+<img alt="Meditation scene" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" data-alt="Calm lake surface at dawn with soft morning mist and gentle ripples in muted green and grey tones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB-uPeQvcd56oKJxlUfmK1ABC3iO3j4LcCFTKh8dHpUnz4byUAQj0TMaDMJN6nbXvo9Fxv2py0JLUhb7hA-pX29IypO3-rmM0DA2M57uJGosqH6LmizaZbK5VxOkfYyuWpLCuxx6nP1B98iS5isy3_RnJfOuguQpVbFUNnJgVmID1RxDq1vwl2THY6sxirT3kKxMSyGxd5l4hPlM5bEwaJNIPjirDM4jiDbg_hUKIUmEwFBFEK2lfPi50kJOWlLZndUP3ermBfveQ"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+<div class="absolute bottom-6 left-8 text-white">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">spa</span>
+<span class="font-label text-[10px] uppercase tracking-widest opacity-80">Last Session</span>
+</div>
+<h3 class="font-headline text-2xl font-medium">Forest Whispers</h3>
+<p class="text-sm opacity-70">15 minutes • High Resonance</p>
+</div>
+<div class="absolute bottom-6 right-8">
+<button class="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center hover:bg-white/40 transition-colors">
+<span class="material-symbols-outlined text-white" data-icon="play_arrow" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</button>
+</div>
+</div>
+<div class="bg-surface-container-low rounded-xl p-8 flex flex-col justify-between shadow-sm">
+<div class="space-y-2">
+<div class="font-label text-[10px] uppercase tracking-widest text-primary font-bold">Focus Metric</div>
+<h4 class="font-headline text-xl">Calmness</h4>
+<p class="text-sm text-on-surface-variant">Your heart rate variability improved by 14% since Tuesday.</p>
+</div>
+<div class="mt-4 h-16 flex items-end gap-1">
+<div class="flex-1 bg-primary/20 h-[40%] rounded-t-sm"></div>
+<div class="flex-1 bg-primary/20 h-[60%] rounded-t-sm"></div>
+<div class="flex-1 bg-primary/40 h-[50%] rounded-t-sm"></div>
+<div class="flex-1 bg-primary/60 h-[80%] rounded-t-sm"></div>
+<div class="flex-1 bg-primary h-[100%] rounded-t-sm"></div>
+<div class="flex-1 bg-primary/30 h-[45%] rounded-t-sm"></div>
+</div>
+</div>
+</section>
+<!-- Meditation History List -->
+<section class="space-y-6">
+<div class="flex items-center justify-between">
+<h3 class="font-headline text-2xl font-light">Journey History</h3>
+<button class="text-primary font-label text-xs uppercase tracking-widest font-bold">View Archive</button>
+</div>
+<div class="space-y-4">
+<!-- History Item 1 -->
+<div class="flex items-center justify-between p-6 bg-surface-container-lowest rounded-lg hover:shadow-md transition-shadow cursor-pointer">
+<div class="flex items-center gap-6">
+<div class="w-14 h-14 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container">
+<span class="material-symbols-outlined" data-icon="air">air</span>
+</div>
+<div>
+<div class="font-headline font-medium text-lg">Pranayama Deep</div>
+<div class="text-sm text-on-surface-variant">Yesterday • 20 mins</div>
+</div>
+</div>
+<div class="text-right">
+<div class="text-xs font-label text-tertiary font-bold tracking-widest uppercase mb-1">Impact</div>
+<div class="flex gap-1 justify-end">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary/20"></span>
+</div>
+</div>
+</div>
+<!-- History Item 2 -->
+<div class="flex items-center justify-between p-6 bg-surface-container-lowest rounded-lg hover:shadow-md transition-shadow cursor-pointer">
+<div class="flex items-center gap-6">
+<div class="w-14 h-14 rounded-full bg-primary-container/30 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="water_drop">water_drop</span>
+</div>
+<div>
+<div class="font-headline font-medium text-lg">Morning Flow</div>
+<div class="text-sm text-on-surface-variant">2 days ago • 10 mins</div>
+</div>
+</div>
+<div class="text-right">
+<div class="text-xs font-label text-tertiary font-bold tracking-widest uppercase mb-1">Impact</div>
+<div class="flex gap-1 justify-end">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- App Settings Grid -->
+<section class="pt-8 border-t border-outline-variant/10">
+<h3 class="font-headline text-2xl font-light mb-8">Settings</h3>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<button class="flex items-center gap-4 p-5 rounded-lg bg-surface-container-low hover:bg-surface-container-high transition-colors text-left group">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors" data-icon="person_outline">person_outline</span>
+<div class="flex-1">
+<div class="font-medium">Personal Information</div>
+<div class="text-xs text-on-surface-variant">Profile, Email, Subscription</div>
+</div>
+<span class="material-symbols-outlined text-outline-variant" data-icon="chevron_right">chevron_right</span>
+</button>
+<button class="flex items-center gap-4 p-5 rounded-lg bg-surface-container-low hover:bg-surface-container-high transition-colors text-left group">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors" data-icon="notifications_none">notifications_none</span>
+<div class="flex-1">
+<div class="font-medium">Reminders &amp; Alerts</div>
+<div class="text-xs text-on-surface-variant">Scheduled breathing, Session end</div>
+</div>
+<span class="material-symbols-outlined text-outline-variant" data-icon="chevron_right">chevron_right</span>
+</button>
+<button class="flex items-center gap-4 p-5 rounded-lg bg-surface-container-low hover:bg-surface-container-high transition-colors text-left group">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors" data-icon="devices">devices</span>
+<div class="flex-1">
+<div class="font-medium">Device Sync</div>
+<div class="text-xs text-on-surface-variant">HUSH Pod, Smart Watches</div>
+</div>
+<span class="material-symbols-outlined text-outline-variant" data-icon="chevron_right">chevron_right</span>
+</button>
+<button class="flex items-center gap-4 p-5 rounded-lg bg-surface-container-low hover:bg-surface-container-high transition-colors text-left group">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors" data-icon="shield_moon">shield_moon</span>
+<div class="flex-1">
+<div class="font-medium">Privacy &amp; Security</div>
+<div class="text-xs text-on-surface-variant">Biometric lock, Data sharing</div>
+</div>
+<span class="material-symbols-outlined text-outline-variant" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+<div class="mt-12 flex flex-col md:flex-row gap-4 items-center justify-between">
+<div class="flex gap-4">
+<button class="px-8 py-3 rounded-full border border-outline-variant/30 text-on-surface-variant hover:border-primary hover:text-primary transition-all font-label text-xs uppercase tracking-widest font-bold">Support</button>
+<button class="px-8 py-3 rounded-full border border-outline-variant/30 text-on-surface-variant hover:border-primary hover:text-primary transition-all font-label text-xs uppercase tracking-widest font-bold">Privacy Policy</button>
+</div>
+<button class="flex items-center gap-2 text-error hover:opacity-80 transition-opacity font-label text-xs uppercase tracking-widest font-bold">
+<span class="material-symbols-outlined text-sm" data-icon="logout">logout</span>
+          Sign Out
+        </button>
+</div>
+</section>
+</main>
+<!-- BottomNavBar (Mobile & Tablet) -->
+<nav class="fixed bottom-6 left-0 right-0 z-50 flex justify-around items-center px-4 py-3 bg-white/70 dark:bg-stone-950/70 backdrop-blur-2xl fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md rounded-[3rem] shadow-[0_20px_50px_rgba(27,28,26,0.04)]">
+<a class="flex flex-col items-center justify-center text-stone-500 dark:text-stone-400 px-6 py-2 hover:scale-110 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="air">air</span>
+<span class="font-manrope text-[10px] uppercase tracking-widest font-medium mt-1">Breath</span>
+</a>
+<a class="flex flex-col items-center justify-center text-stone-500 dark:text-stone-400 px-6 py-2 hover:scale-110 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="font-manrope text-[10px] uppercase tracking-widest font-medium mt-1">Trends</span>
+</a>
+<a class="flex flex-col items-center justify-center text-stone-500 dark:text-stone-400 px-6 py-2 hover:scale-110 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="watch">watch</span>
+<span class="font-manrope text-[10px] uppercase tracking-widest font-medium mt-1">Device</span>
+</a>
+<!-- ACTIVE TAB: Zen (Maps to Profile intent) -->
+<a class="flex flex-col items-center justify-center bg-lime-200/50 dark:bg-lime-900/30 text-lime-900 dark:text-lime-100 rounded-full px-6 py-2 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="spa" style="font-variation-settings: 'FILL' 1;">spa</span>
+<span class="font-manrope text-[10px] uppercase tracking-widest font-medium mt-1">Zen</span>
+</a>
+</nav>
+</body></html>

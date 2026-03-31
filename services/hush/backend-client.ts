@@ -1,8 +1,13 @@
 import Constants from 'expo-constants';
 
 import type {
+  BackendDeviceStatus,
   BackendSessionPayload,
   BackendSessionResult,
+  DeviceAssistantResponse,
+  DeviceAssistantResponseAckPayload,
+  RecentTelemetryResult,
+  RhythmPreviewPayload,
   SessionStatusUpdate,
   TelemetrySample,
 } from '@/types/hush';
@@ -59,6 +64,78 @@ export const backendClient = {
 
     await postJson(`/sessions/${payload.sessionId}/status`, payload);
   },
+
+  async getDeviceStatus(deviceId: string): Promise<BackendDeviceStatus> {
+    if (!apiBaseUrl) {
+      await delay(50);
+      return {
+        deviceId,
+        deviceName: 'Mock HUSH Device',
+        hardwareModel: 'Mock Transport',
+        firmwareVersion: 'mock',
+        batteryLevel: 100,
+        lastSeenAt: new Date().toISOString(),
+        online: true,
+        pendingCommands: 0,
+      };
+    }
+
+    return getJson<BackendDeviceStatus>(`/devices/${deviceId}`);
+  },
+
+  async sendRhythmPreview(payload: RhythmPreviewPayload): Promise<void> {
+    if (!apiBaseUrl) {
+      await delay(50);
+      return;
+    }
+
+    await postJson(`/devices/${payload.deviceId}/rhythm-preview`, payload);
+  },
+
+  async getNextAssistantResponse(deviceId: string): Promise<DeviceAssistantResponse | null> {
+    if (!apiBaseUrl) {
+      await delay(50);
+      return null;
+    }
+
+    const response = await fetch(`${apiBaseUrl}/devices/${deviceId}/assistant-responses/next`);
+    if (response.status === 204) {
+      return null;
+    }
+
+    if (!response.ok) {
+      throw new Error(`Backend request failed: ${response.status}`);
+    }
+
+    return (await response.json()) as DeviceAssistantResponse;
+  },
+
+  async ackAssistantResponse(
+    deviceId: string,
+    responseId: string,
+    payload: DeviceAssistantResponseAckPayload
+  ): Promise<void> {
+    if (!apiBaseUrl) {
+      await delay(50);
+      return;
+    }
+
+    await postJson(`/devices/${deviceId}/assistant-responses/${responseId}/ack`, payload);
+  },
+
+  async getRecentTelemetry(deviceId: string, limit = 72): Promise<RecentTelemetryResult> {
+    if (!apiBaseUrl) {
+      await delay(50);
+      return {
+        deviceId,
+        samples: [],
+      };
+    }
+
+    return getJson<RecentTelemetryResult>(
+      `/devices/${deviceId}/telemetry/recent?limit=${encodeURIComponent(limit)}`
+    );
+  },
 };
 
 async function postJson<T = void>(path: string, body: unknown): Promise<T> {
@@ -76,6 +153,16 @@ async function postJson<T = void>(path: string, body: unknown): Promise<T> {
 
   if (response.status === 204) {
     return undefined as T;
+  }
+
+  return (await response.json()) as T;
+}
+
+async function getJson<T>(path: string): Promise<T> {
+  const response = await fetch(`${apiBaseUrl}${path}`);
+
+  if (!response.ok) {
+    throw new Error(`Backend request failed: ${response.status}`);
   }
 
   return (await response.json()) as T;

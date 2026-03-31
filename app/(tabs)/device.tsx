@@ -1,64 +1,59 @@
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useMemo } from 'react';
 import {
-  Modal,
-  Pressable,
+  Image,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
-import Svg, { Circle, Path } from 'react-native-svg';
 
 import { GlassCard, IconBubble, ListRow, PrimaryButton, ScreenShell, SectionLabel, ToggleSwitch } from '@/components/hush/ui';
-import { hushColors, hushFonts, hushMetrics } from '@/constants/hush-theme';
+import { hushColors, hushFonts } from '@/constants/hush-theme';
 import { useDeviceState } from '@/hooks/use-hush';
+
+const hushDeviceImage = require('../../hush.png');
 
 export default function DeviceScreen() {
   const {
     batteryLevel,
     connectedDevice,
     connectionState,
-    disconnect,
     error,
     firmwareVersion,
-    connect,
-    scannedDevices,
+    isSpeakingAssistantResponse,
     scanForDevices,
-    isDevicePickerVisible,
-    dismissDevicePicker,
     lastSeen,
+    latestAssistantResponseText,
+    postureRemindersEnabled,
+    hapticBreathLeadEnabled,
+    setPostureRemindersEnabled,
+    setHapticBreathLeadEnabled,
     telemetryPreview,
   } = useDeviceState();
 
   const isConnected = connectionState === 'connected';
-  const connectionLabel = isConnected ? 'Connected' : connectionState === 'scanning' ? 'Scanning' : connectionState === 'connecting' ? 'Connecting' : 'Disconnected';
+  const connectionLabel = isConnected
+    ? 'Connected'
+    : connectionState === 'scanning' || connectionState === 'connecting'
+      ? 'Syncing'
+      : 'Disconnected';
   const heroDescription = isConnected
-    ? `${batteryLevel ?? 84}% Charged`
-    : 'Waiting for your HUSH hardware';
+    ? `${batteryLevel ?? '--'}% Battery`
+    : 'Waiting for cloud heartbeat from your hardware';
 
   const statusCopy = useMemo(() => {
     if (isConnected && connectedDevice) {
-      return `Streaming ${telemetryPreview.length} recent chest-motion samples`;
+      return `Seeed XIAO ESP32S3 Sense is online and can receive queued vibration commands from the cloud backend.`;
     }
 
-    if (connectionState === 'scanning') {
-      return 'Looking for nearby HUSH devices with the custom breathing service';
+    if (connectionState === 'scanning' || connectionState === 'connecting') {
+      return 'Refreshing device status from the cloud gateway and checking the latest heartbeat.';
     }
 
-    if (connectionState === 'connecting') {
-      return 'Finalizing the BLE handshake and characteristic subscriptions';
-    }
-
-    return 'Connect your wearable to unlock haptic rhythm guidance and live breathing telemetry.';
-  }, [connectedDevice, connectionState, isConnected, telemetryPreview.length]);
+    return 'Power on the hardware and let it poll the cloud backend. Once the heartbeat arrives, this page will show Connected.';
+  }, [connectedDevice, connectionState, isConnected]);
 
   const handlePrimaryAction = async () => {
-    if (isConnected) {
-      await disconnect();
-      return;
-    }
-
     await scanForDevices();
   };
 
@@ -68,27 +63,9 @@ export default function DeviceScreen() {
         <View style={styles.heroHalo} />
         <View style={styles.deviceAura}>
           <View style={styles.deviceRing} />
-          <LinearGradient colors={['#F4C686', '#D79757']} style={styles.deviceSquare}>
-            <Svg height="100%" style={StyleSheet.absoluteFillObject} viewBox="0 0 220 220" width="100%">
-              <Path
-                d="M70 8 C54 54, 54 90, 78 130"
-                fill="none"
-                stroke="#1B1C1A"
-                strokeLinecap="round"
-                strokeWidth="8"
-              />
-              <Path
-                d="M150 8 C166 54, 166 90, 142 130"
-                fill="none"
-                stroke="#1B1C1A"
-                strokeLinecap="round"
-                strokeWidth="8"
-              />
-              <Circle cx="110" cy="150" fill="#F3F0EA" r="34" />
-              <Circle cx="110" cy="150" fill="#D9C8B8" r="21" />
-              <Circle cx="110" cy="150" fill="#1B1C1A" r="9" />
-            </Svg>
-          </LinearGradient>
+          <View style={styles.devicePortraitFrame}>
+            <Image source={hushDeviceImage} style={styles.devicePortraitImage} />
+          </View>
           <View style={[styles.connectionPill, !isConnected && styles.connectionPillMuted]}>
             <View style={[styles.connectionDot, !isConnected && styles.connectionDotMuted]} />
             <Text style={styles.connectionText}>{connectionLabel}</Text>
@@ -119,21 +96,16 @@ export default function DeviceScreen() {
             icon={
               <Feather
                 color={hushColors.white}
-                name={isConnected ? 'link-2' : connectionState === 'scanning' ? 'loader' : 'bluetooth'}
+                name={isConnected ? 'refresh-cw' : connectionState === 'scanning' ? 'loader' : 'cloud'}
                 size={17}
               />
             }
-            label={isConnected ? 'Disconnect Device' : connectionState === 'scanning' ? 'Scanning...' : 'Connect Device'}
+            label={isConnected ? 'Refresh Status' : connectionState === 'scanning' ? 'Checking...' : 'Check Device'}
             onPress={() => {
               void handlePrimaryAction();
             }}
             disabled={connectionState === 'scanning' || connectionState === 'connecting'}
           />
-          {!isConnected && scannedDevices.length > 1 ? (
-            <Pressable onPress={dismissDevicePicker} style={styles.inlineLink}>
-              <Text style={styles.inlineLinkText}>Hide device list</Text>
-            </Pressable>
-          ) : null}
         </View>
       </GlassCard>
 
@@ -154,7 +126,12 @@ export default function DeviceScreen() {
                 <Text style={styles.rowSubtitle}>Gentle haptic pulses when slouching</Text>
               </View>
             </View>
-            <ToggleSwitch enabled={isConnected} />
+            <ToggleSwitch
+              enabled={postureRemindersEnabled}
+              onToggle={(enabled) => {
+                void setPostureRemindersEnabled(enabled);
+              }}
+            />
           </GlassCard>
 
           <GlassCard style={styles.toggleCard}>
@@ -167,7 +144,12 @@ export default function DeviceScreen() {
                 <Text style={styles.rowSubtitle}>Vibration-guided inhale, hold and exhale cues</Text>
               </View>
             </View>
-            <ToggleSwitch enabled={isConnected} />
+            <ToggleSwitch
+              enabled={hapticBreathLeadEnabled}
+              onToggle={(enabled) => {
+                void setHapticBreathLeadEnabled(enabled);
+              }}
+            />
           </GlassCard>
         </View>
       </View>
@@ -182,7 +164,7 @@ export default function DeviceScreen() {
               </IconBubble>
             }
             soft={false}
-            subtitle={firmwareVersion ? `${firmwareVersion} • Up to date` : 'Waiting for status characteristic'}
+            subtitle={firmwareVersion ? `${firmwareVersion} • Cloud managed` : 'Waiting for device heartbeat'}
             title="Firmware Version"
             trailing={<Feather color={hushColors.textSoft} name="chevron-right" size={18} />}
           />
@@ -193,7 +175,7 @@ export default function DeviceScreen() {
               </IconBubble>
             }
             soft={false}
-            subtitle={isConnected ? `${connectedDevice?.id.slice(0, 8)} • BLE linked` : 'Disconnected and ready to pair'}
+            subtitle={isConnected ? `${connectedDevice?.id.slice(0, 12)} • Cloud gateway online` : 'Offline until the ESP32 checks in'}
             title="Connection Link"
             trailing={<Feather color={hushColors.textSoft} name="chevron-right" size={18} />}
           />
@@ -206,47 +188,16 @@ export default function DeviceScreen() {
         </IconBubble>
         <Text style={styles.helpTitle}>Telemetry Pipeline Ready</Text>
         <Text style={styles.helpCopy}>
-          Incoming 9-axis telemetry is buffered in the app and uploaded to the backend in batches
-          without interrupting BLE reception.
+          Incoming 9-axis telemetry should now flow from the ESP32 directly to the cloud backend,
+          where session history and command queues stay in sync with the app.
         </Text>
-        <Text style={styles.telemetryCount}>Recent samples buffered: {telemetryPreview.length}</Text>
+        {latestAssistantResponseText ? (
+          <Text style={styles.voiceResponseText}>
+            {isSpeakingAssistantResponse ? 'Speaking' : 'Last reply'}: {latestAssistantResponseText}
+          </Text>
+        ) : null}
+        <Text style={styles.telemetryCount}>Recent samples mirrored in app: {telemetryPreview.length}</Text>
       </GlassCard>
-
-      <Modal
-        animationType="fade"
-        transparent
-        visible={isDevicePickerVisible}
-        onRequestClose={dismissDevicePicker}>
-        <View style={styles.modalBackdrop}>
-          <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>Choose your HUSH device</Text>
-            <Text style={styles.modalCopy}>
-              More than one matching device was found nearby. Select the wearable you want to link.
-            </Text>
-            <View style={styles.modalList}>
-              {scannedDevices.map((device) => (
-                <Pressable
-                  key={device.id}
-                  onPress={() => {
-                    void connect(device.id);
-                  }}
-                  style={({ pressed }) => [styles.deviceOption, pressed && styles.deviceOptionPressed]}>
-                  <View>
-                    <Text style={styles.deviceOptionTitle}>{device.name}</Text>
-                    <Text style={styles.deviceOptionMeta}>
-                      {device.id} • RSSI {device.rssi ?? '--'}
-                    </Text>
-                  </View>
-                  <Feather color={hushColors.primaryDark} name="chevron-right" size={18} />
-                </Pressable>
-              ))}
-            </View>
-            <Pressable onPress={dismissDevicePicker} style={styles.modalDismiss}>
-              <Text style={styles.modalDismissText}>Not now</Text>
-            </Pressable>
-          </View>
-        </View>
-      </Modal>
     </ScreenShell>
   );
 }
@@ -282,10 +233,24 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(208, 196, 187, 0.4)',
   },
-  deviceSquare: {
-    width: 150,
-    height: 150,
-    borderRadius: 2,
+  devicePortraitFrame: {
+    width: 164,
+    height: 164,
+    borderRadius: 82,
+    padding: 6,
+    backgroundColor: 'rgba(243, 240, 234, 0.8)',
+    borderWidth: 1,
+    borderColor: 'rgba(215, 151, 87, 0.28)',
+    shadowColor: '#9C6A35',
+    shadowOpacity: 0.14,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 6,
+  },
+  devicePortraitImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 999,
   },
   connectionPill: {
     position: 'absolute',
@@ -373,14 +338,6 @@ const styles = StyleSheet.create({
     gap: 10,
     alignItems: 'flex-start',
   },
-  inlineLink: {
-    paddingVertical: 2,
-  },
-  inlineLinkText: {
-    fontFamily: hushFonts.semibold,
-    fontSize: 12,
-    color: hushColors.primaryDark,
-  },
   section: {
     marginTop: 20,
     gap: 16,
@@ -439,72 +396,19 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     maxWidth: 280,
   },
+  voiceResponseText: {
+    fontFamily: hushFonts.medium,
+    fontSize: 12,
+    lineHeight: 18,
+    color: hushColors.primaryDark,
+    textAlign: 'center',
+  },
   telemetryCount: {
     fontFamily: hushFonts.semibold,
     fontSize: 11,
     letterSpacing: 1.2,
     color: hushColors.textSoft,
     textTransform: 'uppercase',
-  },
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(27, 28, 26, 0.32)',
-    justifyContent: 'center',
-    paddingHorizontal: hushMetrics.screenPadding,
-  },
-  modalCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.96)',
-    borderRadius: 28,
-    paddingHorizontal: 22,
-    paddingVertical: 24,
-    gap: 16,
-  },
-  modalTitle: {
-    fontFamily: hushFonts.title,
-    fontSize: 24,
-    color: hushColors.text,
-  },
-  modalCopy: {
-    fontFamily: hushFonts.body,
-    fontSize: 13,
-    lineHeight: 20,
-    color: hushColors.textMuted,
-  },
-  modalList: {
-    gap: 10,
-  },
-  deviceOption: {
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    backgroundColor: hushColors.surfaceLow,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 10,
-  },
-  deviceOptionPressed: {
-    opacity: 0.82,
-  },
-  deviceOptionTitle: {
-    fontFamily: hushFonts.headline,
-    fontSize: 16,
-    color: hushColors.text,
-    marginBottom: 2,
-  },
-  deviceOptionMeta: {
-    fontFamily: hushFonts.body,
-    fontSize: 12,
-    color: hushColors.textMuted,
-  },
-  modalDismiss: {
-    alignSelf: 'center',
-    paddingVertical: 8,
-  },
-  modalDismissText: {
-    fontFamily: hushFonts.semibold,
-    fontSize: 13,
-    color: hushColors.primaryDark,
   },
 });
 

@@ -51,6 +51,14 @@ export type DeviceStatusPayload = {
   name?: string;
   connected?: boolean;
   telemetryHz?: number;
+  lastSeenAt?: string | null;
+  pendingCommands?: number;
+  hardwareModel?: string | null;
+};
+
+export type DeviceControls = {
+  postureRemindersEnabled: boolean;
+  hapticBreathLeadEnabled: boolean;
 };
 
 export type ConnectedDevice = {
@@ -116,6 +124,15 @@ export type HardwareCommand =
   | RhythmPreviewCommand
   | PingCommand;
 
+export type HardwareCommandEnvelope = {
+  commandId: string;
+  deviceId: string;
+  sessionId: string | null;
+  type: HardwareCommand['type'];
+  payload: HardwareCommand;
+  queuedAt: string;
+};
+
 export type BackendSessionPayload = {
   rhythm: RhythmConfig;
   deviceId: string;
@@ -131,4 +148,67 @@ export type SessionStatusUpdate = {
   sessionId: string;
   status: SessionStatus | 'stopped';
   reason?: SessionPauseReason | SessionStopReason;
+};
+
+export type BackendDeviceStatus = {
+  deviceId: string;
+  deviceName: string;
+  hardwareModel: string | null;
+  firmwareVersion: string | null;
+  batteryLevel: number | null;
+  lastSeenAt: string | null;
+  online: boolean;
+  pendingCommands: number;
+};
+
+export type DeviceHeartbeatPayload = {
+  deviceId: string;
+  deviceName: string;
+  hardwareModel?: string;
+  firmwareVersion?: string;
+  batteryLevel?: number;
+  wifiRssi?: number;
+  ipAddress?: string;
+  sentAt: string;
+};
+
+export type DeviceCommandAckPayload = {
+  status: 'received' | 'completed' | 'failed';
+  message?: string;
+  acknowledgedAt?: string;
+};
+
+export type RhythmPreviewPayload = {
+  deviceId: string;
+  rhythm: RhythmConfig;
+};
+
+export type DeviceAssistantResponse = {
+  responseId: string;
+  deviceId: string;
+  sessionId: string | null;
+  text: string;
+  language: string | null;
+  source: string | null;
+  createdAt: string;
+};
+
+export type DeviceAssistantResponsePayload = {
+  deviceId: string;
+  sessionId?: string | null;
+  text: string;
+  language?: string;
+  source?: 'llm' | 'voice_agent';
+  createdAt: string;
+};
+
+export type DeviceAssistantResponseAckPayload = {
+  status: 'played' | 'failed';
+  message?: string;
+  playedAt?: string;
+};
+
+export type RecentTelemetryResult = {
+  deviceId: string;
+  samples: TelemetrySample[];
 };

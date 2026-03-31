@@ -11,11 +11,15 @@
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": true
+        }
       },
       "bundleIdentifier": "com.anonymous.hushapp"
     },
     "android": {
+      "usesCleartextTraffic": true,
       "permissions": [
         "android.permission.BLUETOOTH_SCAN",
         "android.permission.BLUETOOTH_CONNECT",

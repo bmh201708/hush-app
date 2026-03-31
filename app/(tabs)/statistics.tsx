@@ -1,12 +1,28 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { StyleSheet, Text, View } from 'react-native';
+import { useMemo, useState } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, Line, Path } from 'react-native-svg';
 
 import { GlassCard, IconBubble, ListRow, ScreenShell, SectionLabel } from '@/components/hush/ui';
 import { hushColors, hushFonts, hushMetrics } from '@/constants/hush-theme';
+import { useDeviceState } from '@/hooks/use-hush';
+import type { TelemetrySample } from '@/types/hush';
 
-const chartPath =
+type InsightMode = 'week' | 'instant';
+
+type ChartState = {
+  path: string;
+  labels: string[];
+  metricValue: string;
+  metricLabel: string;
+  subtitle: string;
+  emptyLabel: string;
+};
+
+const WEEK_CHART_PATH =
   'M 8 106 C 32 106, 42 100, 60 88 C 76 76, 92 66, 114 70 C 136 74, 148 96, 166 102 C 182 108, 198 96, 214 78 C 228 62, 246 46, 270 44 C 286 44, 298 58, 308 74';
+
+const WEEK_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 const sessions = [
   {
@@ -28,31 +44,43 @@ const sessions = [
 ];
 
 export default function StatisticsScreen() {
+  const [insightMode, setInsightMode] = useState<InsightMode>('week');
+  const { telemetryPreview } = useDeviceState();
+
+  const instantChart = useMemo(() => buildInstantChart(telemetryPreview), [telemetryPreview]);
+  const chart = insightMode === 'week' ? getWeeklyChart() : instantChart;
+
   return (
     <ScreenShell>
       <View style={styles.heroRow}>
         <View style={styles.heroText}>
-          <SectionLabel>Weekly Insights</SectionLabel>
+          <SectionLabel>{insightMode === 'week' ? 'Weekly Insights' : 'Live Insights'}</SectionLabel>
           <Text style={styles.heroTitle}>Your Rhythm.</Text>
         </View>
         <View style={styles.segment}>
-          <View style={styles.segmentActive}>
-            <Text style={styles.segmentActiveText}>Week</Text>
-          </View>
-          <Text style={styles.segmentText}>Month</Text>
+          <SegmentButton
+            active={insightMode === 'week'}
+            label="Week"
+            onPress={() => setInsightMode('week')}
+          />
+          <SegmentButton
+            active={insightMode === 'instant'}
+            label="Instant"
+            onPress={() => setInsightMode('instant')}
+          />
         </View>
       </View>
 
       <View style={styles.grid}>
         <GlassCard style={styles.chartCard}>
           <View style={styles.chartHeader}>
-            <View>
+            <View style={styles.chartHeaderCopy}>
               <Text style={styles.cardTitle}>Breathing Consistency</Text>
-              <Text style={styles.cardSubtitle}>Daily average breaths per minute</Text>
+              <Text style={styles.cardSubtitle}>{chart.subtitle}</Text>
             </View>
             <View style={styles.chartMetric}>
-              <Text style={styles.chartMetricValue}>6.4</Text>
-              <Text style={styles.chartMetricLabel}>BPM AVG</Text>
+              <Text style={styles.chartMetricValue}>{chart.metricValue}</Text>
+              <Text style={styles.chartMetricLabel}>{chart.metricLabel}</Text>
             </View>
           </View>
 
@@ -61,18 +89,24 @@ export default function StatisticsScreen() {
               <Line stroke={hushColors.surfaceVariant} strokeDasharray="4 5" x1="0" x2="320" y1="18" y2="18" />
               <Line stroke={hushColors.surfaceVariant} strokeDasharray="4 5" x1="0" x2="320" y1="62" y2="62" />
               <Line stroke={hushColors.surfaceVariant} strokeDasharray="4 5" x1="0" x2="320" y1="106" y2="106" />
-              <Path
-                d={chartPath}
-                fill="none"
-                stroke={hushColors.primaryDark}
-                strokeLinecap="round"
-                strokeWidth={4}
-              />
+              {chart.path ? (
+                <Path
+                  d={chart.path}
+                  fill="none"
+                  stroke={hushColors.primaryDark}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={4}
+                />
+              ) : (
+                <Line stroke={hushColors.surfaceVariant} strokeDasharray="6 8" x1="8" x2="308" y1="62" y2="62" />
+              )}
             </Svg>
+            {!chart.path ? <Text style={styles.chartEmpty}>{chart.emptyLabel}</Text> : null}
             <View style={styles.weekdays}>
-              {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
-                <Text key={day} style={styles.weekday}>
-                  {day}
+              {chart.labels.map((label) => (
+                <Text key={label} style={styles.weekday}>
+                  {label}
                 </Text>
               ))}
             </View>
@@ -193,6 +227,103 @@ export default function StatisticsScreen() {
   );
 }
 
+function SegmentButton({
+  active,
+  label,
+  onPress,
+}: {
+  active: boolean;
+  label: string;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.segmentButton,
+        active && styles.segmentActive,
+        pressed && styles.segmentPressed,
+      ]}>
+      <Text style={active ? styles.segmentActiveText : styles.segmentText}>{label}</Text>
+    </Pressable>
+  );
+}
+
+function getWeeklyChart(): ChartState {
+  return {
+    path: WEEK_CHART_PATH,
+    labels: WEEK_LABELS,
+    metricValue: '6.4',
+    metricLabel: 'BPM AVG',
+    subtitle: 'Daily average breaths per minute',
+    emptyLabel: '',
+  };
+}
+
+function buildInstantChart(samples: TelemetrySample[]): ChartState {
+  const recentSamples = samples.slice(-72);
+  if (recentSamples.length < 2) {
+    return {
+      path: '',
+      labels: ['-18s', '-12s', '-6s', 'Now'],
+      metricValue: `${recentSamples.length}`,
+      metricLabel: 'LIVE SAMPLES',
+      subtitle: 'Real-time chest motion inferred from the latest 9-axis telemetry',
+      emptyLabel: 'Awaiting live telemetry from the hardware',
+    };
+  }
+
+  const rawSignal = recentSamples.map((sample) => {
+    const accelMagnitude = magnitude(sample.accel.x, sample.accel.y, sample.accel.z);
+    const gyroMagnitude = magnitude(sample.gyro.x, sample.gyro.y, sample.gyro.z);
+    const magMagnitude = magnitude(sample.mag.x, sample.mag.y, sample.mag.z);
+
+    return accelMagnitude + gyroMagnitude * 0.025 + magMagnitude * 0.002;
+  });
+
+  const smoothed = rawSignal.map((_, index) => {
+    const window = rawSignal.slice(Math.max(0, index - 2), index + 1);
+    return window.reduce((sum, value) => sum + value, 0) / window.length;
+  });
+
+  const minValue = Math.min(...smoothed);
+  const maxValue = Math.max(...smoothed);
+  const span = Math.max(maxValue - minValue, 0.0001);
+
+  const points = smoothed.map((value, index) => {
+    const normalized = (value - minValue) / span;
+    const x = 8 + (index / Math.max(smoothed.length - 1, 1)) * 300;
+    const y = 106 - normalized * 70;
+    return `${index === 0 ? 'M' : 'L'} ${x.toFixed(1)} ${y.toFixed(1)}`;
+  });
+
+  const firstTimestamp = recentSamples[0]?.deviceTimestampMs ?? 0;
+  const lastTimestamp = recentSamples[recentSamples.length - 1]?.deviceTimestampMs ?? firstTimestamp;
+  const windowSec = Math.max(1, Math.round((lastTimestamp - firstTimestamp) / 1000));
+
+  return {
+    path: points.join(' '),
+    labels: buildInstantLabels(windowSec),
+    metricValue: `${recentSamples.length}`,
+    metricLabel: 'LIVE SAMPLES',
+    subtitle: 'Real-time chest motion inferred from the latest 9-axis telemetry',
+    emptyLabel: '',
+  };
+}
+
+function buildInstantLabels(windowSec: number) {
+  return [
+    `-${windowSec}s`,
+    `-${Math.max(1, Math.round(windowSec * 0.66))}s`,
+    `-${Math.max(1, Math.round(windowSec * 0.33))}s`,
+    'Now',
+  ];
+}
+
+function magnitude(x: number, y: number, z: number) {
+  return Math.sqrt(x * x + y * y + z * z);
+}
+
 const styles = StyleSheet.create({
   heroRow: {
     marginTop: 6,
@@ -217,11 +348,16 @@ const styles = StyleSheet.create({
     backgroundColor: hushColors.surfaceLow,
     gap: 4,
   },
-  segmentActive: {
-    paddingHorizontal: 18,
+  segmentButton: {
+    paddingHorizontal: 16,
     paddingVertical: 9,
     borderRadius: hushMetrics.pillRadius,
+  },
+  segmentActive: {
     backgroundColor: hushColors.surface,
+  },
+  segmentPressed: {
+    opacity: 0.72,
   },
   segmentActiveText: {
     fontFamily: hushFonts.medium,
@@ -229,7 +365,6 @@ const styles = StyleSheet.create({
     color: hushColors.text,
   },
   segmentText: {
-    paddingHorizontal: 16,
     fontFamily: hushFonts.medium,
     fontSize: 13,
     color: hushColors.textMuted,
@@ -244,36 +379,52 @@ const styles = StyleSheet.create({
   chartHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'flex-start',
     gap: 18,
+  },
+  chartHeaderCopy: {
+    flex: 1,
+    minWidth: 0,
   },
   cardTitle: {
     fontFamily: hushFonts.headline,
     fontSize: 25,
     color: hushColors.text,
     marginBottom: 6,
+    flexShrink: 1,
   },
   cardSubtitle: {
     fontFamily: hushFonts.body,
     fontSize: 12,
     color: hushColors.textMuted,
+    flexShrink: 1,
   },
   chartMetric: {
     alignItems: 'flex-end',
     justifyContent: 'flex-start',
+    flexShrink: 0,
+    maxWidth: 94,
   },
   chartMetricValue: {
     fontFamily: hushFonts.title,
     color: hushColors.primaryDark,
-    fontSize: 28,
+    fontSize: 24,
+    lineHeight: 28,
   },
   chartMetricLabel: {
     fontFamily: hushFonts.semibold,
-    fontSize: 10,
+    fontSize: 9,
     color: hushColors.textSoft,
-    letterSpacing: 1.5,
+    letterSpacing: 1.1,
+    textAlign: 'right',
   },
   chartWrap: {
     gap: 14,
+  },
+  chartEmpty: {
+    fontFamily: hushFonts.body,
+    fontSize: 12,
+    color: hushColors.textSoft,
   },
   weekdays: {
     flexDirection: 'row',
@@ -308,55 +459,51 @@ const styles = StyleSheet.create({
   },
   scoreValue: {
     fontFamily: hushFonts.title,
-    fontSize: 34,
+    fontSize: 42,
     color: hushColors.white,
   },
   scoreLabel: {
     fontFamily: hushFonts.semibold,
-    fontSize: 10,
-    letterSpacing: 2,
-    color: 'rgba(255,255,255,0.74)',
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.72)',
+    letterSpacing: 1.1,
     textTransform: 'uppercase',
   },
   scoreCopy: {
-    alignItems: 'center',
     gap: 8,
+    alignItems: 'center',
   },
   scoreTitle: {
     fontFamily: hushFonts.headline,
-    fontSize: 22,
+    fontSize: 24,
     color: hushColors.white,
   },
   scoreDescription: {
     fontFamily: hushFonts.body,
-    fontSize: 12,
-    lineHeight: 18,
-    color: 'rgba(217, 234, 163, 0.72)',
+    fontSize: 13,
+    lineHeight: 19,
+    color: 'rgba(255,255,255,0.72)',
     textAlign: 'center',
   },
   metricCard: {
-    paddingHorizontal: 20,
-    paddingVertical: 18,
+    padding: 20,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
+    gap: 14,
   },
   metricValue: {
     fontFamily: hushFonts.title,
     fontSize: 26,
     color: hushColors.text,
-    marginBottom: 2,
   },
   metricLabel: {
-    fontFamily: hushFonts.semibold,
-    fontSize: 10,
-    color: hushColors.textSoft,
-    textTransform: 'uppercase',
-    letterSpacing: 1.4,
+    fontFamily: hushFonts.body,
+    fontSize: 13,
+    color: hushColors.textMuted,
   },
   section: {
-    marginTop: 18,
-    gap: 16,
+    marginTop: 8,
+    gap: 14,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -365,52 +512,50 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontFamily: hushFonts.headline,
-    fontSize: 30,
+    fontSize: 24,
     color: hushColors.text,
   },
   linkText: {
     fontFamily: hushFonts.semibold,
     fontSize: 12,
     color: hushColors.textSoft,
+    textTransform: 'uppercase',
+    letterSpacing: 1.1,
   },
   list: {
     gap: 12,
   },
   sessionMeta: {
     alignItems: 'flex-end',
-    gap: 4,
+    gap: 3,
   },
   sessionDuration: {
-    fontFamily: hushFonts.medium,
-    fontSize: 14,
+    fontFamily: hushFonts.semibold,
+    fontSize: 12,
     color: hushColors.text,
   },
   sessionMode: {
-    fontFamily: hushFonts.semibold,
-    fontSize: 10,
-    letterSpacing: 1.2,
-    color: hushColors.amber,
-    textTransform: 'uppercase',
+    fontFamily: hushFonts.body,
+    fontSize: 12,
+    color: hushColors.textSoft,
   },
   quoteBlock: {
-    marginTop: 12,
-    paddingTop: 30,
-    gap: 14,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: 'rgba(208, 196, 187, 0.65)',
+    marginTop: 10,
+    paddingHorizontal: 8,
+    paddingBottom: 32,
+    gap: 8,
   },
   quote: {
-    fontFamily: hushFonts.display,
-    fontSize: 30,
-    lineHeight: 42,
-    color: hushColors.textMuted,
-    fontStyle: 'italic',
+    fontFamily: hushFonts.body,
+    fontSize: 16,
+    lineHeight: 26,
+    color: hushColors.text,
   },
   quoteAuthor: {
     fontFamily: hushFonts.semibold,
-    fontSize: 10,
-    letterSpacing: 2.4,
-    color: hushColors.primaryDark,
+    fontSize: 12,
     textTransform: 'uppercase',
+    letterSpacing: 1.2,
+    color: hushColors.textSoft,
   },
 });

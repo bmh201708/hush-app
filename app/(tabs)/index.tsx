@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   Modal,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -25,7 +26,7 @@ import { hushColors, hushFonts, hushMetrics, hushShadow } from '@/constants/hush
 import { useBreathSession, useDeviceState, useRhythmConfig } from '@/hooks/use-hush';
 import type { RhythmConfig, SessionPhase } from '@/types/hush';
 
-type ActionIconName = 'play' | 'pause' | 'bluetooth';
+type ActionIconName = 'play' | 'pause' | 'bluetooth' | 'stop';
 
 type RhythmDraft = {
   inhale: string;
@@ -35,14 +36,15 @@ type RhythmDraft = {
 };
 
 export default function BreathScreen() {
-  const { width } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
   const { connectionState, connectedDevice, error: deviceError, clearError } = useDeviceState();
-  const { session, start, pause, resume, stop, totalDurationMs } = useBreathSession();
+  const { session, start, stop, totalDurationMs, lastSessionDurationMs } = useBreathSession();
   const { presets, rhythmConfig, saveRhythmConfig } = useRhythmConfig();
 
   const [isRhythmModalVisible, setRhythmModalVisible] = useState(false);
   const [draft, setDraft] = useState<RhythmDraft>(() => toDraft(rhythmConfig));
   const [draftError, setDraftError] = useState<string | null>(null);
+  const [elapsedMs, setElapsedMs] = useState(0);
 
   const scale = useSharedValue(1);
   const haloPulse = useSharedValue(1);
@@ -57,7 +59,11 @@ export default function BreathScreen() {
     session.status === 'running' || session.status === 'paused'
       ? `${session.cycleIndex}/${rhythmConfig.cycles}`
       : `${rhythmConfig.cycles} cycles`;
-  const formattedDuration = formatDuration(totalDurationMs);
+  const lastSessionDurationLabel = formatDuration(lastSessionDurationMs);
+  const liveDurationLabel =
+    session.status === 'running' || session.status === 'paused'
+      ? formatDuration(Math.min(elapsedMs, totalDurationMs))
+      : '0:00';
 
   useEffect(() => {
     haloPulse.value = withRepeat(
@@ -95,6 +101,35 @@ export default function BreathScreen() {
     setDraft(toDraft(rhythmConfig));
   }, [rhythmConfig]);
 
+  useEffect(() => {
+    if (session.status === 'completed') {
+      setElapsedMs(totalDurationMs);
+      return;
+    }
+
+    if (session.status !== 'running' || !session.startedAt) {
+      setElapsedMs(0);
+      return;
+    }
+
+    const startedAtMs = Date.parse(session.startedAt);
+    if (Number.isNaN(startedAtMs)) {
+      setElapsedMs(0);
+      return;
+    }
+
+    const updateElapsed = () => {
+      setElapsedMs(Math.max(0, Date.now() - startedAtMs));
+    };
+
+    updateElapsed();
+    const interval = setInterval(updateElapsed, 1000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [session.startedAt, session.status, totalDurationMs]);
+
   const animatedSphereStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
   }));
@@ -108,17 +143,7 @@ export default function BreathScreen() {
     clearError();
 
     if (session.status === 'running') {
-      await pause('user_pause');
-      return;
-    }
-
-    if (session.status === 'paused') {
-      if (!isConnected) {
-        router.navigate('/device');
-        return;
-      }
-
-      await resume();
+      await stop('user_stop');
       return;
     }
 
@@ -132,15 +157,9 @@ export default function BreathScreen() {
 
   function handleSecondaryAction() {
     clearError();
-
-    if (session.status === 'idle' || session.status === 'completed') {
-      setDraft(toDraft(rhythmConfig));
-      setDraftError(null);
-      setRhythmModalVisible(true);
-      return;
-    }
-
-    void stop('user_stop');
+    setDraft(toDraft(rhythmConfig));
+    setDraftError(null);
+    setRhythmModalVisible(true);
   }
 
   async function handleSaveRhythm() {
@@ -213,7 +232,7 @@ export default function BreathScreen() {
         </View>
         <View style={styles.metaRight}>
           <Text style={styles.metaLabel}>Duration</Text>
-          <Text style={styles.metaValue}>{formattedDuration}</Text>
+          <Text style={styles.metaValue}>{liveDurationLabel}</Text>
         </View>
       </View>
 
@@ -234,24 +253,25 @@ export default function BreathScreen() {
           onPress={() => {
             void handlePrimaryAction();
           }}
+          variant={session.status === 'running' ? 'danger' : 'default'}
           disabled={connectionState === 'scanning' || connectionState === 'connecting'}
         />
         <TextAction
           icon={
             <Feather
-              color={session.status === 'idle' || session.status === 'completed' ? hushColors.primaryDark : hushColors.error}
-              name={session.status === 'idle' || session.status === 'completed' ? 'settings' : 'square'}
+              color={hushColors.primaryDark}
+              name="settings"
               size={14}
             />
           }
-          label={session.status === 'idle' || session.status === 'completed' ? 'Adjust Rhythm' : 'End Session'}
+          label="Adjust Rhythm"
           onPress={handleSecondaryAction}
         />
       </View>
 
       <View style={styles.statusStrip}>
         <Text style={styles.statusStripText}>
-          Hardware {isConnected ? `linked to ${connectedDevice?.name ?? 'HUSH device'}` : 'not connected'}
+          Hardware {isConnected ? `online as ${connectedDevice?.name ?? 'Seeed XIAO gateway'}` : 'offline on cloud gateway'}
         </Text>
       </View>
 
@@ -280,7 +300,7 @@ export default function BreathScreen() {
           </View>
           <View>
             <Text style={styles.statLabel}>Program</Text>
-            <Text style={styles.statValue}>{formattedDuration}</Text>
+            <Text style={styles.statValue}>{lastSessionDurationLabel}</Text>
           </View>
         </View>
         <View style={[styles.statCard, styles.statCardSoft]}>
@@ -300,56 +320,61 @@ export default function BreathScreen() {
         visible={isRhythmModalVisible}
         onRequestClose={() => setRhythmModalVisible(false)}>
         <View style={styles.modalBackdrop}>
-          <View style={styles.modalCard}>
+          <View style={[styles.modalCard, { maxHeight: Math.min(height * 0.82, 620) }]}>
             <Text style={styles.modalTitle}>Adjust rhythm</Text>
-            <Text style={styles.modalCopy}>
-              Set inhale, hold, exhale and total cycles. Saving also updates the hardware preview if a
-              device is connected.
-            </Text>
+            <ScrollView
+              bounces={false}
+              contentContainerStyle={styles.modalScrollContent}
+              showsVerticalScrollIndicator={false}>
+              <Text style={styles.modalCopy}>
+                Set inhale, hold, exhale and total cycles. Saving also updates the cloud command preview if the
+                hardware is online.
+              </Text>
 
-            <View style={styles.presetRow}>
-              {presets.map((preset) => (
-                <Pressable
-                  key={preset.id}
-                  onPress={() => {
-                    setDraft(toDraft(preset.config));
-                    setDraftError(null);
-                  }}
-                  style={({ pressed }) => [styles.presetChip, pressed && styles.presetChipPressed]}>
-                  <Text style={styles.presetChipLabel}>{preset.label}</Text>
-                  <Text style={styles.presetChipMeta}>{preset.description}</Text>
-                </Pressable>
-              ))}
-            </View>
+              <View style={styles.presetRow}>
+                {presets.map((preset) => (
+                  <Pressable
+                    key={preset.id}
+                    onPress={() => {
+                      setDraft(toDraft(preset.config));
+                      setDraftError(null);
+                    }}
+                    style={({ pressed }) => [styles.presetChip, pressed && styles.presetChipPressed]}>
+                    <Text style={styles.presetChipLabel}>{preset.label}</Text>
+                    <Text style={styles.presetChipMeta}>{preset.description}</Text>
+                  </Pressable>
+                ))}
+              </View>
 
-            <View style={styles.formGrid}>
-              <RhythmField
-                label="Inhale"
-                suffix="sec"
-                value={draft.inhale}
-                onChangeText={(value) => setDraft((current) => ({ ...current, inhale: value }))}
-              />
-              <RhythmField
-                label="Hold"
-                suffix="sec"
-                value={draft.hold}
-                onChangeText={(value) => setDraft((current) => ({ ...current, hold: value }))}
-              />
-              <RhythmField
-                label="Exhale"
-                suffix="sec"
-                value={draft.exhale}
-                onChangeText={(value) => setDraft((current) => ({ ...current, exhale: value }))}
-              />
-              <RhythmField
-                label="Cycles"
-                suffix="x"
-                value={draft.cycles}
-                onChangeText={(value) => setDraft((current) => ({ ...current, cycles: value }))}
-              />
-            </View>
+              <View style={styles.formGrid}>
+                <RhythmField
+                  label="Inhale"
+                  suffix="sec"
+                  value={draft.inhale}
+                  onChangeText={(value) => setDraft((current) => ({ ...current, inhale: value }))}
+                />
+                <RhythmField
+                  label="Hold"
+                  suffix="sec"
+                  value={draft.hold}
+                  onChangeText={(value) => setDraft((current) => ({ ...current, hold: value }))}
+                />
+                <RhythmField
+                  label="Exhale"
+                  suffix="sec"
+                  value={draft.exhale}
+                  onChangeText={(value) => setDraft((current) => ({ ...current, exhale: value }))}
+                />
+                <RhythmField
+                  label="Cycles"
+                  suffix="x"
+                  value={draft.cycles}
+                  onChangeText={(value) => setDraft((current) => ({ ...current, cycles: value }))}
+                />
+              </View>
 
-            {draftError ? <Text style={styles.modalError}>{draftError}</Text> : null}
+              {draftError ? <Text style={styles.modalError}>{draftError}</Text> : null}
+            </ScrollView>
 
             <View style={styles.modalActions}>
               <Pressable onPress={() => setRhythmModalVisible(false)} style={styles.secondaryModalButton}>
@@ -580,9 +605,13 @@ const styles = StyleSheet.create({
   modalCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.97)',
     borderRadius: 28,
-    paddingHorizontal: 22,
-    paddingVertical: 24,
-    gap: 18,
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+    gap: 16,
+  },
+  modalScrollContent: {
+    gap: 16,
+    paddingBottom: 8,
   },
   modalTitle: {
     fontFamily: hushFonts.title,
@@ -700,10 +729,10 @@ function getPhaseMeta(
     if (phase === 'inhale') {
       return {
         title: 'Inhale',
-        prompt: 'Breathe in as the sphere expands and your device mirrors the rhythm.',
+        prompt: 'Breathe in as the sphere expands and the cloud backend mirrors the same rhythm on the hardware.',
         icon: 'weather-windy' as const,
-        buttonLabel: 'Pause Session',
-        buttonIcon: 'pause' as ActionIconName,
+        buttonLabel: 'Stop Session',
+        buttonIcon: 'stop' as ActionIconName,
         statusValue: 'Running',
       };
     }
@@ -711,20 +740,20 @@ function getPhaseMeta(
     if (phase === 'hold') {
       return {
         title: 'Hold',
-        prompt: 'Stay soft through the hold. The wearable keeps the same cadence on your chest.',
+        prompt: 'Stay soft through the hold while the hardware keeps the same pause in vibration.',
         icon: 'pause-circle-outline' as const,
-        buttonLabel: 'Pause Session',
-        buttonIcon: 'pause' as ActionIconName,
+        buttonLabel: 'Stop Session',
+        buttonIcon: 'stop' as ActionIconName,
         statusValue: 'Running',
       };
     }
 
     return {
       title: 'Exhale',
-      prompt: 'Exhale slowly and let the hardware fade with the ball.',
+      prompt: 'Exhale slowly and let the vibration fade with the ball.',
       icon: 'weather-windy-variant' as const,
-      buttonLabel: 'Pause Session',
-      buttonIcon: 'pause' as ActionIconName,
+      buttonLabel: 'Stop Session',
+      buttonIcon: 'stop' as ActionIconName,
       statusValue: 'Running',
     };
   }
@@ -733,10 +762,10 @@ function getPhaseMeta(
     return {
       title: 'Paused',
       prompt: pauseReason === 'device_disconnected'
-        ? 'Session paused because the device disconnected. Reconnect on the Device tab to resume.'
+        ? 'Session paused because the hardware went offline. Restore the cloud connection to resume.'
         : 'Session paused. Resume whenever you are ready.',
       icon: 'pause-circle' as const,
-      buttonLabel: isConnected ? 'Resume Session' : 'Connect Device',
+      buttonLabel: isConnected ? 'Resume Session' : 'Check Device',
       buttonIcon: (isConnected ? 'play' : 'bluetooth') as ActionIconName,
       statusValue: 'Paused',
     };
@@ -747,7 +776,7 @@ function getPhaseMeta(
       title: 'Complete',
       prompt: 'Your breathing cycle is complete. Notice the shift before beginning another round.',
       icon: 'check-circle-outline' as const,
-      buttonLabel: isConnected ? 'Start Session' : 'Connect Device',
+      buttonLabel: isConnected ? 'Start Session' : 'Check Device',
       buttonIcon: (isConnected ? 'play' : 'bluetooth') as ActionIconName,
       statusValue: 'Complete',
     };
@@ -756,10 +785,10 @@ function getPhaseMeta(
   return {
     title: 'Ready',
     prompt: isConnected
-      ? 'Start a guided breathing session and the hardware will vibrate in the same rhythm.'
-      : 'Connect your HUSH device first, then start the session to sync animation, telemetry and vibration.',
+      ? 'Start a guided breathing session and the cloud backend will push matching inhale, hold and exhale vibrations to the hardware.'
+      : 'Wait for the Seeed XIAO hardware to come online in the cloud gateway, then start the session.',
     icon: 'weather-windy' as const,
-    buttonLabel: isConnected ? 'Start Session' : 'Connect Device',
+    buttonLabel: isConnected ? 'Start Session' : 'Check Device',
     buttonIcon: (isConnected ? 'play' : 'bluetooth') as ActionIconName,
     statusValue: 'Ready',
   };

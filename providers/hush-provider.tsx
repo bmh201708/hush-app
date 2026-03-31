@@ -1,31 +1,25 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Speech from 'expo-speech';
 import type { PropsWithChildren } from 'react';
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
-import { PermissionsAndroid, Platform } from 'react-native';
+import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 
 import {
+  DEFAULT_DEVICE_CONTROLS,
+  DEFAULT_CLOUD_DEVICE_ID,
+  DEFAULT_CLOUD_DEVICE_NAME,
   DEFAULT_RHYTHM_CONFIG,
-  HUSH_SCAN_WINDOW_MS,
+  HUSH_ASSISTANT_RESPONSE_POLL_INTERVAL_MS,
+  HUSH_DEVICE_STATUS_POLL_INTERVAL_MS,
   HUSH_STORAGE_KEYS,
-  HUSH_TELEMETRY_BATCH_SIZE,
-  HUSH_TELEMETRY_FLUSH_INTERVAL_MS,
-  HUSH_TELEMETRY_RETRY_DELAY_MS,
+  HUSH_TELEMETRY_PREVIEW_POLL_INTERVAL_MS,
   RHYTHM_PRESETS,
 } from '@/constants/hush-ble';
 import { backendClient } from '@/services/hush/backend-client';
-import { HushBleClient } from '@/services/hush/ble-client';
 import type {
   BackendSessionPayload,
   ConnectedDevice,
   ConnectionState,
-  DeviceStatusPayload,
+  DeviceControls,
   RhythmConfig,
   SessionPauseReason,
   SessionPhase,
@@ -43,12 +37,18 @@ type DeviceSlice = {
   batteryLevel: number | null;
   firmwareVersion: string | null;
   lastSeen: string | null;
+  latestAssistantResponseText: string | null;
+  isSpeakingAssistantResponse: boolean;
   telemetryPreview: TelemetrySample[];
+  postureRemindersEnabled: boolean;
+  hapticBreathLeadEnabled: boolean;
   error: string | null;
   isBluetoothReady: boolean;
   scanForDevices: () => Promise<void>;
   connect: (deviceId?: string) => Promise<void>;
   disconnect: () => Promise<void>;
+  setPostureRemindersEnabled: (enabled: boolean) => Promise<void>;
+  setHapticBreathLeadEnabled: (enabled: boolean) => Promise<void>;
   dismissDevicePicker: () => void;
   clearError: () => void;
 };
@@ -62,6 +62,7 @@ type RhythmSlice = {
 type SessionSlice = {
   session: SessionState;
   totalDurationMs: number;
+  lastSessionDurationMs: number;
   start: () => Promise<void>;
   pause: (reason?: SessionPauseReason) => Promise<void>;
   resume: () => Promise<void>;
@@ -86,52 +87,56 @@ const INITIAL_SESSION: SessionState = {
 const HushContext = createContext<HushContextValue | null>(null);
 
 export function HushProvider({ children }: PropsWithChildren) {
-  const bleClientRef = useRef<HushBleClient | null>(null);
   const phaseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const scanWindowRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const telemetryQueueRef = useRef<TelemetrySample[]>([]);
-  const telemetryRetryRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const isUploadingRef = useRef(false);
   const sessionRef = useRef<SessionState>(INITIAL_SESSION);
   const rhythmRef = useRef<RhythmConfig>(DEFAULT_RHYTHM_CONFIG);
   const connectedDeviceRef = useRef<ConnectedDevice | null>(null);
+  const connectionStateRef = useRef<ConnectionState>('idle');
   const isMountedRef = useRef(false);
+  const isSpeakingAssistantResponseRef = useRef(false);
 
-  const [permissionGranted, setPermissionGranted] = useState<boolean | null>(null);
+  const [permissionGranted] = useState<boolean | null>(true);
   const [connectionState, setConnectionState] = useState<ConnectionState>('idle');
   const [connectedDevice, setConnectedDevice] = useState<ConnectedDevice | null>(null);
-  const [scannedDevices, setScannedDevices] = useState<ConnectedDevice[]>([]);
-  const [isDevicePickerVisible, setDevicePickerVisible] = useState(false);
   const [batteryLevel, setBatteryLevel] = useState<number | null>(null);
   const [firmwareVersion, setFirmwareVersion] = useState<string | null>(null);
   const [lastSeen, setLastSeen] = useState<string | null>(null);
+  const [latestAssistantResponseText, setLatestAssistantResponseText] = useState<string | null>(null);
+  const [isSpeakingAssistantResponse, setSpeakingAssistantResponse] = useState(false);
   const [telemetryPreview, setTelemetryPreview] = useState<TelemetrySample[]>([]);
+  const [postureRemindersEnabled, setPostureRemindersState] = useState<boolean>(
+    DEFAULT_DEVICE_CONTROLS.postureRemindersEnabled
+  );
+  const [hapticBreathLeadEnabled, setHapticBreathLeadState] = useState<boolean>(
+    DEFAULT_DEVICE_CONTROLS.hapticBreathLeadEnabled
+  );
   const [error, setError] = useState<string | null>(null);
-  const [isBluetoothReady, setBluetoothReady] = useState(false);
   const [rhythmConfig, setRhythmConfig] = useState<RhythmConfig>(DEFAULT_RHYTHM_CONFIG);
   const [session, setSession] = useState<SessionState>(INITIAL_SESSION);
+  const [lastSessionDurationMs, setLastSessionDurationMs] = useState(0);
 
   useEffect(() => {
-    bleClientRef.current = new HushBleClient();
     isMountedRef.current = true;
     void loadPersistedState();
-    void syncAdapterState();
+    void refreshDeviceStatus();
 
-    const flushInterval = setInterval(() => {
-      void flushTelemetryQueue();
-    }, HUSH_TELEMETRY_FLUSH_INTERVAL_MS);
+    const pollInterval = setInterval(() => {
+      void refreshDeviceStatus(true);
+    }, HUSH_DEVICE_STATUS_POLL_INTERVAL_MS);
+    const assistantResponsePoll = setInterval(() => {
+      void pollAssistantResponses();
+    }, HUSH_ASSISTANT_RESPONSE_POLL_INTERVAL_MS);
+    const telemetryPoll = setInterval(() => {
+      void refreshTelemetryPreview();
+    }, HUSH_TELEMETRY_PREVIEW_POLL_INTERVAL_MS);
 
     return () => {
       isMountedRef.current = false;
-      clearInterval(flushInterval);
+      clearInterval(pollInterval);
+      clearInterval(assistantResponsePoll);
+      clearInterval(telemetryPoll);
       clearPhaseTimer();
-      if (scanWindowRef.current) {
-        clearTimeout(scanWindowRef.current);
-      }
-      bleClientRef.current?.destroy();
-      if (telemetryRetryRef.current) {
-        clearTimeout(telemetryRetryRef.current);
-      }
+      Speech.stop();
     };
   }, []);
 
@@ -147,6 +152,14 @@ export function HushProvider({ children }: PropsWithChildren) {
     connectedDeviceRef.current = connectedDevice;
   }, [connectedDevice]);
 
+  useEffect(() => {
+    connectionStateRef.current = connectionState;
+  }, [connectionState]);
+
+  useEffect(() => {
+    isSpeakingAssistantResponseRef.current = isSpeakingAssistantResponse;
+  }, [isSpeakingAssistantResponse]);
+
   const totalDurationMs =
     rhythmConfig.inhaleMs + rhythmConfig.holdMs + rhythmConfig.exhaleMs;
   const totalSessionDurationMs = totalDurationMs * rhythmConfig.cycles;
@@ -154,249 +167,177 @@ export function HushProvider({ children }: PropsWithChildren) {
   async function loadPersistedState() {
     try {
       const storedRhythm = await AsyncStorage.getItem(HUSH_STORAGE_KEYS.rhythmConfig);
+      const storedLastSessionDuration = await AsyncStorage.getItem(
+        HUSH_STORAGE_KEYS.lastSessionDurationMs
+      );
+      const storedDeviceControls = await AsyncStorage.getItem(
+        HUSH_STORAGE_KEYS.deviceControls
+      );
       if (storedRhythm) {
         const parsed = JSON.parse(storedRhythm) as RhythmConfig;
         setRhythmConfig(parsed);
+      }
+      if (storedLastSessionDuration) {
+        setLastSessionDurationMs(Number(storedLastSessionDuration) || 0);
+      }
+      if (storedDeviceControls) {
+        const parsed = JSON.parse(storedDeviceControls) as Partial<DeviceControls>;
+        setPostureRemindersState(
+          parsed.postureRemindersEnabled ?? DEFAULT_DEVICE_CONTROLS.postureRemindersEnabled
+        );
+        setHapticBreathLeadState(
+          parsed.hapticBreathLeadEnabled ?? DEFAULT_DEVICE_CONTROLS.hapticBreathLeadEnabled
+        );
       }
     } catch {
       // Ignore invalid persisted config and fall back to defaults.
     }
   }
 
-  async function syncAdapterState() {
-    if (!bleClientRef.current || Platform.OS === 'web') {
-      return false;
+  async function refreshDeviceStatus(silent = false) {
+    if (!silent) {
+      setConnectionState((current) =>
+        current === 'connected' ? 'connecting' : 'scanning'
+      );
     }
 
     try {
-      const state = await bleClientRef.current.getAdapterState();
-      const ready = state === 'PoweredOn';
-      setBluetoothReady(ready);
-      return ready;
-    } catch {
-      setBluetoothReady(false);
-      return false;
-    }
-  }
-
-  async function requestPermissions() {
-    if (Platform.OS === 'web') {
-      setPermissionGranted(false);
-      setError('BLE is only available on iOS and Android development builds.');
-      return false;
-    }
-
-    if (Platform.OS === 'ios') {
-      setPermissionGranted(true);
-      return true;
-    }
-
-    const androidVersion = typeof Platform.Version === 'number' ? Platform.Version : 0;
-
-    const permissions =
-      androidVersion >= 31
-        ? [
-            PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
-            PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
-          ]
-        : [PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION];
-
-    const result = await PermissionsAndroid.requestMultiple(permissions);
-    const granted = permissions.every(
-      (permission) => result[permission] === PermissionsAndroid.RESULTS.GRANTED
-    );
-    setPermissionGranted(granted);
-
-    if (!granted) {
-      setError('Bluetooth permission is required to scan and connect to HUSH devices.');
-    }
-
-    return granted;
-  }
-
-  async function scanForDevices() {
-    const canContinue = await requestPermissions();
-    if (!canContinue || !bleClientRef.current) {
-      return;
-    }
-
-    const adapterReady = await syncAdapterState();
-    if (!adapterReady && Platform.OS !== 'ios') {
-      setConnectionState('error');
-      setError('Turn on Bluetooth before scanning for your HUSH device.');
-      return;
-    }
-
-    setConnectionState('scanning');
-    setError(null);
-    setScannedDevices([]);
-    setDevicePickerVisible(false);
-
-    const seen = new Map<string, ConnectedDevice>();
-    bleClientRef.current.startScan({
-      onDevice: (device) => {
-        seen.set(device.id, device);
-        if (!isMountedRef.current) {
-          return;
-        }
-        setScannedDevices(Array.from(seen.values()));
-      },
-      onError: (message) => {
-        setConnectionState('error');
-        setError(message);
-      },
-    });
-
-    if (scanWindowRef.current) {
-      clearTimeout(scanWindowRef.current);
-    }
-
-    scanWindowRef.current = setTimeout(async () => {
-      bleClientRef.current?.stopScan();
-      scanWindowRef.current = null;
+      const status = await backendClient.getDeviceStatus(DEFAULT_CLOUD_DEVICE_ID);
 
       if (!isMountedRef.current) {
         return;
       }
 
-      const devices = Array.from(seen.values());
-      if (devices.length === 0) {
-        setConnectionState('disconnected');
-        setError('No HUSH devices were found nearby. Make sure the hardware is powered on.');
+      setConnectedDevice({
+        id: status.deviceId,
+        name: status.deviceName || DEFAULT_CLOUD_DEVICE_NAME,
+        rssi: null,
+      });
+      setBatteryLevel(status.batteryLevel);
+      setFirmwareVersion(status.firmwareVersion);
+      setLastSeen(status.lastSeenAt);
+      setConnectionState(status.online ? 'connected' : 'disconnected');
+      if (!status.online) {
+        setTelemetryPreview([]);
+      } else {
+        void refreshTelemetryPreview();
+      }
+      setError(
+        status.online
+          ? null
+          : 'Hardware heartbeat is offline. Make sure the Seeed XIAO ESP32S3 Sense is powered on and polling the cloud backend.'
+      );
+    } catch (statusError) {
+      if (!isMountedRef.current) {
         return;
       }
 
-      if (devices.length === 1) {
-        await connect(devices[0].id);
-        return;
-      }
-
-      setConnectionState('disconnected');
-      setDevicePickerVisible(true);
-    }, HUSH_SCAN_WINDOW_MS);
+      setConnectionState('error');
+      setTelemetryPreview([]);
+      setError(getErrorMessage(statusError, 'Unable to reach the cloud device gateway.'));
+    }
   }
 
-  async function connect(deviceId?: string) {
-    if (!bleClientRef.current) {
+  async function refreshTelemetryPreview() {
+    if (!connectedDeviceRef.current || connectionStateRef.current !== 'connected') {
       return;
     }
-
-    const targetId = deviceId ?? scannedDevices[0]?.id;
-    if (!targetId) {
-      setError('Select a device before connecting.');
-      return;
-    }
-
-    setConnectionState('connecting');
-    setError(null);
-    setDevicePickerVisible(false);
 
     try {
-      const device = await bleClientRef.current.connect(targetId, {
-        onDisconnected: () => {
-          setConnectionState('disconnected');
-          setConnectedDevice(null);
-          setLastSeen(new Date().toISOString());
-          void pause('device_disconnected');
-          setError('Device disconnected. Reconnect to continue the session.');
+      const result = await backendClient.getRecentTelemetry(connectedDeviceRef.current.id);
+      if (!isMountedRef.current) {
+        return;
+      }
+
+      setTelemetryPreview(result.samples);
+    } catch {
+      if (isMountedRef.current) {
+        setTelemetryPreview([]);
+      }
+    }
+  }
+
+  async function pollAssistantResponses() {
+    if (
+      connectionStateRef.current !== 'connected' ||
+      !connectedDeviceRef.current ||
+      isSpeakingAssistantResponseRef.current
+    ) {
+      return;
+    }
+
+    try {
+      const response = await backendClient.getNextAssistantResponse(connectedDeviceRef.current.id);
+      if (!response || !isMountedRef.current) {
+        return;
+      }
+
+      setLatestAssistantResponseText(response.text);
+      setSpeakingAssistantResponse(true);
+
+      Speech.speak(response.text, {
+        language: response.language ?? undefined,
+        onDone: () => {
+          void backendClient.ackAssistantResponse(response.deviceId, response.responseId, {
+            status: 'played',
+            playedAt: new Date().toISOString(),
+          });
+          if (isMountedRef.current) {
+            setSpeakingAssistantResponse(false);
+          }
         },
-        onStatus: (status) => {
-          applyStatus(status);
+        onStopped: () => {
+          if (isMountedRef.current) {
+            setSpeakingAssistantResponse(false);
+          }
         },
-        onTelemetry: (sample) => {
-          handleTelemetrySample(sample);
+        onError: () => {
+          void backendClient.ackAssistantResponse(response.deviceId, response.responseId, {
+            status: 'failed',
+            message: 'iPhone speech playback failed',
+            playedAt: new Date().toISOString(),
+          });
+          if (isMountedRef.current) {
+            setSpeakingAssistantResponse(false);
+          }
         },
       });
-
-      setConnectedDevice(device);
-      setConnectionState('connected');
-      setLastSeen(new Date().toISOString());
-      await AsyncStorage.setItem(HUSH_STORAGE_KEYS.lastDeviceId, device.id);
-    } catch (connectError) {
-      setConnectionState('error');
-      setConnectedDevice(null);
-      setError(getErrorMessage(connectError, 'Unable to connect to the selected device.'));
+    } catch {
+      // Voice polling is best-effort and should not break the rest of the app.
     }
+  }
+
+  async function scanForDevices() {
+    await refreshDeviceStatus();
+  }
+
+  async function connect(_deviceId?: string) {
+    await refreshDeviceStatus();
   }
 
   async function disconnect() {
-    try {
-      clearPhaseTimer();
-      if (sessionRef.current.status === 'running' || sessionRef.current.status === 'paused') {
-        await stop('user_stop');
-      }
-      await bleClientRef.current?.disconnect();
-    } catch {
-      // Keep UI consistent even if the native disconnect reports an error.
-    } finally {
-      setConnectedDevice(null);
-      setConnectionState('disconnected');
-      setBatteryLevel(null);
-    }
+    setError('Device connectivity is managed by the cloud gateway. Power off the hardware to disconnect it.');
+    await refreshDeviceStatus(true);
   }
 
-  function applyStatus(status: DeviceStatusPayload) {
-    if (typeof status.batteryLevel === 'number') {
-      setBatteryLevel(status.batteryLevel);
-    }
-
-    if (status.firmwareVersion) {
-      setFirmwareVersion(status.firmwareVersion);
-    }
-
-    if (status.name && connectedDeviceRef.current) {
-      setConnectedDevice({
-        ...connectedDeviceRef.current,
-        name: status.name,
-      });
-    }
-
-    setLastSeen(new Date().toISOString());
+  async function setDeviceControls(next: DeviceControls) {
+    setPostureRemindersState(next.postureRemindersEnabled);
+    setHapticBreathLeadState(next.hapticBreathLeadEnabled);
+    await AsyncStorage.setItem(HUSH_STORAGE_KEYS.deviceControls, JSON.stringify(next));
   }
 
-  function handleTelemetrySample(sample: TelemetrySample) {
-    const sessionId = sessionRef.current.sessionId ?? undefined;
-    const nextSample = sessionId ? { ...sample, sessionId } : sample;
-
-    telemetryQueueRef.current.push(nextSample);
-    setLastSeen(nextSample.receivedAt);
-    setTelemetryPreview((current) => [...current.slice(-7), nextSample]);
-
-    if (telemetryQueueRef.current.length >= HUSH_TELEMETRY_BATCH_SIZE) {
-      void flushTelemetryQueue();
-    }
+  async function setPostureRemindersEnabled(enabled: boolean) {
+    await setDeviceControls({
+      postureRemindersEnabled: enabled,
+      hapticBreathLeadEnabled,
+    });
   }
 
-  async function flushTelemetryQueue() {
-    if (isUploadingRef.current || telemetryQueueRef.current.length === 0) {
-      return;
-    }
-
-    const device = connectedDeviceRef.current;
-    if (!device) {
-      return;
-    }
-
-    isUploadingRef.current = true;
-    const batch = telemetryQueueRef.current.splice(0, HUSH_TELEMETRY_BATCH_SIZE);
-
-    try {
-      await backendClient.uploadTelemetryBatch({
-        sessionId: sessionRef.current.sessionId,
-        deviceId: device.id,
-        samples: batch,
-      });
-    } catch {
-      telemetryQueueRef.current.unshift(...batch);
-      if (!telemetryRetryRef.current) {
-        telemetryRetryRef.current = setTimeout(() => {
-          telemetryRetryRef.current = null;
-          void flushTelemetryQueue();
-        }, HUSH_TELEMETRY_RETRY_DELAY_MS);
-      }
-    } finally {
-      isUploadingRef.current = false;
-    }
+  async function setHapticBreathLeadEnabled(enabled: boolean) {
+    await setDeviceControls({
+      postureRemindersEnabled,
+      hapticBreathLeadEnabled: enabled,
+    });
   }
 
   async function saveRhythmConfig(next: RhythmConfig) {
@@ -408,13 +349,11 @@ export function HushProvider({ children }: PropsWithChildren) {
     setRhythmConfig(next);
     await AsyncStorage.setItem(HUSH_STORAGE_KEYS.rhythmConfig, JSON.stringify(next));
 
-    if (connectionState === 'connected' && sessionRef.current.status === 'idle') {
+    if (connectedDeviceRef.current && sessionRef.current.status !== 'running') {
       try {
-        await bleClientRef.current?.sendCommand({
-          type: 'rhythm_preview',
+        await backendClient.sendRhythmPreview({
+          deviceId: connectedDeviceRef.current.id,
           rhythm: next,
-          vibration: 'medium',
-          sentAt: new Date().toISOString(),
         });
       } catch {
         // Preview sync is best-effort and should not block saving.
@@ -425,8 +364,8 @@ export function HushProvider({ children }: PropsWithChildren) {
   }
 
   async function start() {
-    if (!connectedDeviceRef.current) {
-      setError('Connect your HUSH device before starting a breathing session.');
+    if (!connectedDeviceRef.current || connectionState !== 'connected') {
+      setError('Wait for the cloud hardware gateway to report connected before starting a session.');
       return;
     }
 
@@ -450,13 +389,6 @@ export function HushProvider({ children }: PropsWithChildren) {
         pauseReason: null,
       };
       setSession(nextState);
-      await bleClientRef.current?.sendCommand({
-        type: 'session_start',
-        sessionId,
-        rhythm: rhythmRef.current,
-        vibration: 'medium',
-        sentAt: new Date().toISOString(),
-      });
       schedulePhase('inhale', 1);
     } catch (startError) {
       setError(getErrorMessage(startError, 'Unable to start the breathing session.'));
@@ -464,12 +396,13 @@ export function HushProvider({ children }: PropsWithChildren) {
   }
 
   async function pause(reason: SessionPauseReason = 'user_pause') {
-    if (sessionRef.current.status !== 'running') {
+    if (sessionRef.current.status !== 'running' || !sessionRef.current.sessionId) {
       return;
     }
 
     clearPhaseTimer();
     const currentSession = sessionRef.current;
+    const sessionId = currentSession.sessionId!;
 
     setSession((state) => ({
       ...state,
@@ -477,82 +410,37 @@ export function HushProvider({ children }: PropsWithChildren) {
       pauseReason: reason,
     }));
 
-    if (reason !== 'device_disconnected') {
-      try {
-        await bleClientRef.current?.sendCommand({
-          type: 'session_pause',
-          sessionId: currentSession.sessionId ?? '',
-          reason,
-          sentAt: new Date().toISOString(),
-        });
-      } catch {
-        // Transport failure is acceptable while pausing.
-      }
-    }
-
-    if (currentSession.sessionId) {
-      await backendClient.updateSessionStatus({
-        sessionId: currentSession.sessionId,
-        status: 'paused',
-        reason,
-      });
-    }
+    await backendClient.updateSessionStatus({
+      sessionId,
+      status: 'paused',
+      reason,
+    });
   }
 
   async function resume() {
-    if (sessionRef.current.status !== 'paused' || !connectedDeviceRef.current) {
-      setError('Reconnect your HUSH device before resuming.');
+    if (sessionRef.current.status !== 'paused' || !sessionRef.current.sessionId) {
       return;
     }
 
     const currentSession = sessionRef.current;
+    const sessionId = currentSession.sessionId!;
     setSession((state) => ({
       ...state,
       status: 'running',
       pauseReason: null,
     }));
 
-    try {
-      await bleClientRef.current?.sendCommand({
-        type: 'session_resume',
-        sessionId: currentSession.sessionId ?? '',
-        sentAt: new Date().toISOString(),
-      });
-      schedulePhase(currentSession.phase, Math.max(currentSession.cycleIndex, 1));
-    } catch (resumeError) {
-      setError(getErrorMessage(resumeError, 'Unable to resume the breathing session.'));
-      setSession((state) => ({
-        ...state,
-        status: 'paused',
-        pauseReason: 'system',
-      }));
-      return;
-    }
-
-    if (currentSession.sessionId) {
-      await backendClient.updateSessionStatus({
-        sessionId: currentSession.sessionId,
-        status: 'running',
-      });
-    }
+    await backendClient.updateSessionStatus({
+      sessionId,
+      status: 'running',
+    });
+    schedulePhase(currentSession.phase, Math.max(currentSession.cycleIndex, 1));
   }
 
   async function stop(reason: SessionStopReason = 'user_stop') {
     clearPhaseTimer();
     const currentSession = sessionRef.current;
-
-    if (currentSession.sessionId && reason !== 'device_disconnected') {
-      try {
-        await bleClientRef.current?.sendCommand({
-          type: 'session_stop',
-          sessionId: currentSession.sessionId,
-          reason,
-          sentAt: new Date().toISOString(),
-        });
-      } catch {
-        // Stop should still complete locally.
-      }
-    }
+    const completedDurationMs = getSessionDurationMs(currentSession, totalSessionDurationMs);
 
     if (currentSession.sessionId) {
       await backendClient.updateSessionStatus({
@@ -560,6 +448,14 @@ export function HushProvider({ children }: PropsWithChildren) {
         status: reason === 'completed' ? 'completed' : 'stopped',
         reason,
       });
+    }
+
+    if (completedDurationMs > 0) {
+      setLastSessionDurationMs(completedDurationMs);
+      await AsyncStorage.setItem(
+        HUSH_STORAGE_KEYS.lastSessionDurationMs,
+        `${completedDurationMs}`
+      );
     }
 
     setSession({
@@ -612,7 +508,7 @@ export function HushProvider({ children }: PropsWithChildren) {
   }
 
   function dismissDevicePicker() {
-    setDevicePickerVisible(false);
+    // Device selection is not needed in cloud mode.
   }
 
   function clearError() {
@@ -625,17 +521,23 @@ export function HushProvider({ children }: PropsWithChildren) {
         permissionGranted,
         connectionState,
         connectedDevice,
-        scannedDevices,
-        isDevicePickerVisible,
+        scannedDevices: connectedDevice ? [connectedDevice] : [],
+        isDevicePickerVisible: false,
         batteryLevel,
         firmwareVersion,
         lastSeen,
+        latestAssistantResponseText,
+        isSpeakingAssistantResponse,
         telemetryPreview,
+        postureRemindersEnabled,
+        hapticBreathLeadEnabled,
         error,
-        isBluetoothReady,
+        isBluetoothReady: false,
         scanForDevices,
         connect,
         disconnect,
+        setPostureRemindersEnabled,
+        setHapticBreathLeadEnabled,
         dismissDevicePicker,
         clearError,
       },
@@ -647,6 +549,7 @@ export function HushProvider({ children }: PropsWithChildren) {
       session: {
         session,
         totalDurationMs: totalSessionDurationMs,
+        lastSessionDurationMs,
         start,
         pause,
         resume,
@@ -659,12 +562,14 @@ export function HushProvider({ children }: PropsWithChildren) {
       connectionState,
       error,
       firmwareVersion,
-      isBluetoothReady,
-      isDevicePickerVisible,
+      hapticBreathLeadEnabled,
+      isSpeakingAssistantResponse,
+      lastSessionDurationMs,
       lastSeen,
+      latestAssistantResponseText,
       permissionGranted,
+      postureRemindersEnabled,
       rhythmConfig,
-      scannedDevices,
       session,
       telemetryPreview,
       totalSessionDurationMs,
@@ -729,4 +634,17 @@ function getErrorMessage(error: unknown, fallback: string) {
   }
 
   return fallback;
+}
+
+function getSessionDurationMs(session: SessionState, totalSessionDurationMs: number) {
+  if (!session.startedAt) {
+    return 0;
+  }
+
+  const startedAtMs = Date.parse(session.startedAt);
+  if (Number.isNaN(startedAtMs)) {
+    return 0;
+  }
+
+  return Math.min(Math.max(0, Date.now() - startedAtMs), totalSessionDurationMs);
 }

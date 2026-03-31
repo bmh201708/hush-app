@@ -21,6 +21,7 @@ type ActionButtonProps = {
   label: string;
   onPress?: () => void;
   disabled?: boolean;
+  variant?: 'default' | 'danger';
 };
 
 type TextActionProps = {
@@ -32,6 +33,8 @@ type TextActionProps = {
 
 type ToggleSwitchProps = {
   enabled: boolean;
+  onToggle?: (enabled: boolean) => void;
+  disabled?: boolean;
 };
 
 type ListRowProps = {
@@ -112,13 +115,20 @@ export function GlassCard({ children, style }: GlassCardProps) {
   return <View style={[styles.glassCard, style]}>{children}</View>;
 }
 
-export function PrimaryButton({ icon, label, onPress, disabled }: ActionButtonProps) {
+export function PrimaryButton({
+  icon,
+  label,
+  onPress,
+  disabled,
+  variant = 'default',
+}: ActionButtonProps) {
   return (
     <Pressable
       disabled={disabled}
       onPress={onPress}
       style={({ pressed }) => [
         styles.primaryButton,
+        variant === 'danger' && styles.primaryButtonDanger,
         disabled && styles.primaryButtonDisabled,
         pressed && !disabled && styles.pressed,
       ]}>
@@ -144,11 +154,19 @@ export function SectionLabel({ children }: PropsWithChildren) {
   return <Text style={styles.sectionLabel}>{children}</Text>;
 }
 
-export function ToggleSwitch({ enabled }: ToggleSwitchProps) {
+export function ToggleSwitch({ enabled, onToggle, disabled }: ToggleSwitchProps) {
   return (
-    <View style={[styles.toggleTrack, enabled ? styles.toggleTrackActive : styles.toggleTrackIdle]}>
+    <Pressable
+      disabled={disabled}
+      onPress={() => onToggle?.(!enabled)}
+      style={({ pressed }) => [
+        styles.toggleTrack,
+        enabled ? styles.toggleTrackActive : styles.toggleTrackIdle,
+        disabled && styles.disabled,
+        pressed && !disabled && styles.pressed,
+      ]}>
       <View style={[styles.toggleThumb, enabled ? styles.toggleThumbActive : null]} />
-    </View>
+    </Pressable>
   );
 }
 
@@ -356,6 +374,9 @@ const styles = StyleSheet.create({
     backgroundColor: hushColors.primaryDark,
     minWidth: 172,
     ...hushShadow.ambient,
+  },
+  primaryButtonDanger: {
+    backgroundColor: '#A64535',
   },
   primaryButtonIcon: {
     marginRight: 10,

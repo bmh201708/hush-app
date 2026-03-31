@@ -3,6 +3,8 @@ import type { RhythmPreset } from '@/types/hush';
 export const HUSH_STORAGE_KEYS = {
   rhythmConfig: 'hush.rhythmConfig.v1',
   lastDeviceId: 'hush.lastDeviceId.v1',
+  lastSessionDurationMs: 'hush.lastSessionDurationMs.v1',
+  deviceControls: 'hush.deviceControls.v1',
 } as const;
 
 export const HUSH_BLE_UUIDS = {
@@ -16,6 +18,19 @@ export const HUSH_SCAN_WINDOW_MS = 3500;
 export const HUSH_TELEMETRY_BATCH_SIZE = 20;
 export const HUSH_TELEMETRY_FLUSH_INTERVAL_MS = 1000;
 export const HUSH_TELEMETRY_RETRY_DELAY_MS = 2000;
+export const HUSH_DEVICE_STATUS_POLL_INTERVAL_MS = 5000;
+export const HUSH_DEVICE_ONLINE_WINDOW_MS = 45000;
+export const HUSH_ASSISTANT_RESPONSE_POLL_INTERVAL_MS = 2500;
+export const HUSH_TELEMETRY_PREVIEW_POLL_INTERVAL_MS = 2000;
+export const DEFAULT_CLOUD_DEVICE_ID =
+  process.env.EXPO_PUBLIC_HUSH_DEVICE_ID ?? 'seeed-xiao-esp32s3-sense-001';
+export const DEFAULT_CLOUD_DEVICE_NAME =
+  process.env.EXPO_PUBLIC_HUSH_DEVICE_NAME ?? 'Seeed XIAO ESP32S3 Sense';
+
+export const DEFAULT_DEVICE_CONTROLS = {
+  postureRemindersEnabled: true,
+  hapticBreathLeadEnabled: true,
+} as const;
 
 export const DEFAULT_RHYTHM_CONFIG: RhythmPreset['config'] = {
   inhaleMs: 4000,

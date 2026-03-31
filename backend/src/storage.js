@@ -27,8 +27,44 @@ function createTelemetryStorage({ telemetryDir, logger }) {
     };
   }
 
+  async function readRecentSamples({ relativePaths, limit, deviceId }) {
+    const collected = [];
+
+    for (const relativePath of relativePaths) {
+      if (collected.length >= limit) {
+        break;
+      }
+
+      const absolutePath = path.join(telemetryDir, relativePath);
+
+      try {
+        const content = await fs.promises.readFile(absolutePath, 'utf8');
+        const samples = content
+          .split('\n')
+          .filter(Boolean)
+          .map((line) => JSON.parse(line))
+          .filter((sample) => !deviceId || sample.deviceId === deviceId);
+
+        for (let index = samples.length - 1; index >= 0; index -= 1) {
+          collected.push(samples[index]);
+          if (collected.length >= limit) {
+            break;
+          }
+        }
+      } catch (error) {
+        logger.warn('Unable to read telemetry batch from disk', {
+          filePath: absolutePath,
+          message: error instanceof Error ? error.message : 'Unknown file read error',
+        });
+      }
+    }
+
+    return collected.reverse();
+  }
+
   return {
     persistBatch,
+    readRecentSamples,
   };
 }
 

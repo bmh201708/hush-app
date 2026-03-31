@@ -1,9 +1,12 @@
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { StyleSheet, Text, View } from 'react-native';
+import { useRef } from 'react';
+import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { GlassCard, IconBubble, ListRow, ScreenShell, SectionLabel } from '@/components/hush/ui';
 import { hushColors, hushFonts, hushMetrics } from '@/constants/hush-theme';
+
+const FOREST_WHISPERS_IMAGE_URL = 'https://picsum.photos/seed/forest-whispers/800/400';
 
 const history = [
   {
@@ -46,6 +49,16 @@ const settings = [
 ];
 
 export default function ProfileScreen() {
+  const sessionImageScale = useRef(new Animated.Value(1)).current;
+
+  const animateSessionImage = (toValue: number) => {
+    Animated.timing(sessionImageScale, {
+      toValue,
+      duration: 700,
+      useNativeDriver: true,
+    }).start();
+  };
+
   return (
     <ScreenShell>
       <View style={styles.hero}>
@@ -73,9 +86,19 @@ export default function ProfileScreen() {
       </View>
 
       <View style={styles.mediaGrid}>
-        <LinearGradient colors={['#2B1204', '#7B3410', '#FF9C1A']} style={styles.sessionCard}>
+        <Pressable
+          onHoverIn={() => animateSessionImage(1.05)}
+          onHoverOut={() => animateSessionImage(1)}
+          style={styles.sessionCard}>
+          <Animated.Image
+            source={{ uri: FOREST_WHISPERS_IMAGE_URL }}
+            style={[styles.sessionImage, { transform: [{ scale: sessionImageScale }] }]}
+          />
+          <LinearGradient
+            colors={['rgba(21, 31, 22, 0.14)', 'rgba(26, 47, 30, 0.38)', 'rgba(10, 18, 12, 0.76)']}
+            style={styles.sessionImageShade}
+          />
           <View style={styles.sessionGlow} />
-          <MaterialCommunityIcons color="rgba(246, 209, 156, 0.82)" name="meditation" size={112} />
           <View style={styles.sessionOverlay}>
             <View>
               <View style={styles.lastSessionRow}>
@@ -89,7 +112,7 @@ export default function ProfileScreen() {
               <Ionicons color={hushColors.white} name="play" size={18} />
             </View>
           </View>
-        </LinearGradient>
+        </Pressable>
 
         <GlassCard style={styles.focusCard}>
           <View>
@@ -255,6 +278,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden',
+    backgroundColor: '#1D3020',
+  },
+  sessionImage: {
+    ...StyleSheet.absoluteFillObject,
+    width: '100%',
+    height: '100%',
+  },
+  sessionImageShade: {
+    ...StyleSheet.absoluteFillObject,
   },
   sessionGlow: {
     position: 'absolute',

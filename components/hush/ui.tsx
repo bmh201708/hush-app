@@ -1,9 +1,17 @@
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useIsFocused } from '@react-navigation/native';
 import { router } from 'expo-router';
 import type { PropsWithChildren, ReactNode } from 'react';
+import { useEffect } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { hushColors, hushFonts, hushMetrics, hushShadow } from '@/constants/hush-theme';
@@ -96,16 +104,49 @@ const TAB_CONFIG: Record<
 };
 
 export function ScreenShell({ children, contentContainerStyle }: ScreenShellProps) {
+  const isFocused = useIsFocused();
+  const opacity = useSharedValue(0.94);
+  const translateY = useSharedValue(14);
+  const scale = useSharedValue(0.988);
+
+  useEffect(() => {
+    if (isFocused) {
+      opacity.value = 0.94;
+      translateY.value = 14;
+      scale.value = 0.988;
+    }
+
+    opacity.value = withTiming(isFocused ? 1 : 0.98, {
+      duration: isFocused ? 560 : 260,
+      easing: Easing.out(Easing.cubic),
+    });
+    translateY.value = withTiming(isFocused ? 0 : 6, {
+      duration: isFocused ? 560 : 260,
+      easing: Easing.out(Easing.cubic),
+    });
+    scale.value = withTiming(isFocused ? 1 : 0.995, {
+      duration: isFocused ? 560 : 260,
+      easing: Easing.out(Easing.cubic),
+    });
+  }, [isFocused, opacity, scale, translateY]);
+
+  const pageMotionStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ translateY: translateY.value }, { scale: scale.value }],
+  }));
+
   return (
     <View style={styles.screen}>
       <AmbientBackdrop />
       <SafeAreaView edges={['top']} style={styles.safeArea}>
-        <TopBar />
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={[styles.scrollContent, contentContainerStyle]}>
-          {children}
-        </ScrollView>
+        <Animated.View style={[styles.pageMotion, pageMotionStyle]}>
+          <TopBar />
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={[styles.scrollContent, contentContainerStyle]}>
+            {children}
+          </ScrollView>
+        </Animated.View>
       </SafeAreaView>
     </View>
   );
@@ -301,6 +342,9 @@ const styles = StyleSheet.create({
     backgroundColor: hushColors.background,
   },
   safeArea: {
+    flex: 1,
+  },
+  pageMotion: {
     flex: 1,
   },
   scrollContent: {

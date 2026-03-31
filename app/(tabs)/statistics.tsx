@@ -1,7 +1,8 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import Svg, { Circle, Line, Path } from 'react-native-svg';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useIsFocused } from '@react-navigation/native';
+import Svg, { Circle, Defs, Line, LinearGradient, Path, Stop } from 'react-native-svg';
 
 import { GlassCard, IconBubble, ListRow, ScreenShell, SectionLabel } from '@/components/hush/ui';
 import { hushColors, hushFonts, hushMetrics } from '@/constants/hush-theme';
@@ -21,8 +22,10 @@ type ChartState = {
 
 const WEEK_CHART_PATH =
   'M 8 106 C 32 106, 42 100, 60 88 C 76 76, 92 66, 114 70 C 136 74, 148 96, 166 102 C 182 108, 198 96, 214 78 C 228 62, 246 46, 270 44 C 286 44, 298 58, 308 74';
+const WEEK_PATH_LENGTH = 420;
 
 const WEEK_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const AnimatedPath = Animated.createAnimatedComponent(Path);
 
 const sessions = [
   {
@@ -46,9 +49,25 @@ const sessions = [
 export default function StatisticsScreen() {
   const [insightMode, setInsightMode] = useState<InsightMode>('week');
   const { telemetryPreview } = useDeviceState();
+  const isFocused = useIsFocused();
+  const weekStrokeOffset = useRef(new Animated.Value(WEEK_PATH_LENGTH)).current;
 
   const instantChart = useMemo(() => buildInstantChart(telemetryPreview), [telemetryPreview]);
   const chart = insightMode === 'week' ? getWeeklyChart() : instantChart;
+
+  useEffect(() => {
+    if (!isFocused || insightMode !== 'week') {
+      return;
+    }
+
+    weekStrokeOffset.setValue(WEEK_PATH_LENGTH);
+    Animated.timing(weekStrokeOffset, {
+      toValue: 0,
+      duration: 1200,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: false,
+    }).start();
+  }, [insightMode, isFocused, weekStrokeOffset]);
 
   return (
     <ScreenShell>
@@ -86,18 +105,38 @@ export default function StatisticsScreen() {
 
           <View style={styles.chartWrap}>
             <Svg height={124} width="100%" viewBox="0 0 320 124">
+              <Defs>
+                <LinearGradient id="weekCurveGradient" x1="8" x2="308" y1="0" y2="0">
+                  <Stop offset="0%" stopColor={hushColors.primaryDark} stopOpacity="1" />
+                  <Stop offset="55%" stopColor={hushColors.primaryDark} stopOpacity="0.7" />
+                  <Stop offset="100%" stopColor={hushColors.primaryDark} stopOpacity="0.28" />
+                </LinearGradient>
+              </Defs>
               <Line stroke={hushColors.surfaceVariant} strokeDasharray="4 5" x1="0" x2="320" y1="18" y2="18" />
               <Line stroke={hushColors.surfaceVariant} strokeDasharray="4 5" x1="0" x2="320" y1="62" y2="62" />
               <Line stroke={hushColors.surfaceVariant} strokeDasharray="4 5" x1="0" x2="320" y1="106" y2="106" />
               {chart.path ? (
-                <Path
-                  d={chart.path}
-                  fill="none"
-                  stroke={hushColors.primaryDark}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={4}
-                />
+                insightMode === 'week' ? (
+                  <AnimatedPath
+                    d={chart.path}
+                    fill="none"
+                    stroke="url(#weekCurveGradient)"
+                    strokeDasharray={WEEK_PATH_LENGTH}
+                    strokeDashoffset={weekStrokeOffset}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={4}
+                  />
+                ) : (
+                  <Path
+                    d={chart.path}
+                    fill="none"
+                    stroke={hushColors.primaryDark}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={4}
+                  />
+                )
               ) : (
                 <Line stroke={hushColors.surfaceVariant} strokeDasharray="6 8" x1="8" x2="308" y1="62" y2="62" />
               )}
